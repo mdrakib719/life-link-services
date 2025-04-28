@@ -99,7 +99,7 @@ app.post("/api/add-shop", async (req, res) => {
   }
 });
 
-app.post("/api/add-meal", async (req, res) => {
+app.post("/api/add-custom-meal", async (req, res) => {
   const { title, description, price, rating } = req.body;
   try {
     await mealCollection.insertOne({ title, description, price, rating });
