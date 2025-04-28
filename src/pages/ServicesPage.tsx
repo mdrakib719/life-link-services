@@ -15,24 +15,39 @@ import {
 
 const ServicesPage = () => {
   const [flats, setFlats] = useState([]); // To store the flat data
+  const [shops, setShops] = useState([]); // To store the shop data
   const [loading, setLoading] = useState(true); // To handle loading state
   const [error, setError] = useState(null); // To handle error state
 
   useEffect(() => {
-    const fetchFlats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/data", {
+        // Fetch flats
+        const flatsResponse = await fetch("http://localhost:3000/api/data", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
-        if (!response.ok) {
+        if (!flatsResponse.ok) {
           throw new Error("Failed to fetch flats");
         }
-        const data = await response.json();
-        console.log(data); // Logs the raw data from the backend
-        setFlats(data);
+        const flatsData = await flatsResponse.json();
+        setFlats(flatsData);
+
+        // Fetch shops
+        const shopsResponse = await fetch("http://localhost:3000/api/shopi", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!shopsResponse.ok) {
+          throw new Error("Failed to fetch shops");
+        }
+        const shopsData = await shopsResponse.json();
+        setShops(shopsData);
+
         setLoading(false);
       } catch (err) {
         setError(err.message); // Set the error if there's an issue
@@ -40,7 +55,7 @@ const ServicesPage = () => {
       }
     };
 
-    fetchFlats();
+    fetchData();
   }, []);
 
   return (
@@ -106,7 +121,6 @@ const ServicesPage = () => {
                     <CardContent className="p-6">
                       <h3 className="text-xl font-semibold mb-2">
                         {flat.title || "No title"}{" "}
-                        {/* Fallback for missing title */}
                       </h3>
                       <div className="flex items-center text-gray-500 mb-2">
                         <MapPin size={16} className="mr-1" />
@@ -128,8 +142,47 @@ const ServicesPage = () => {
                             size={16}
                             className="text-yellow-500 mr-1 fill-yellow-500"
                           />
-                          <span>4.5</span> {/* Example rating */}
+                          <span>4.5</span>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Shops Content */}
+          <TabsContent value="shops" className="animate-fade-in">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {loading ? (
+                <p>Loading shops...</p>
+              ) : error ? (
+                <p>Error: {error}</p>
+              ) : shops.length === 0 ? (
+                <p>No shops available.</p>
+              ) : (
+                shops.map((shop) => (
+                  <Card key={shop._id} className="overflow-hidden card-hover">
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-2">
+                        {shop.title || "No name"}
+                      </h3>
+                      <div className="flex items-center text-gray-500 mb-2">
+                        <MapPin size={16} className="mr-1" />
+                        <span className="text-sm">
+                          {shop.location || "Unknown location"}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-gray-500 mb-3">
+                        <span className="text-sm">
+                          {shop.distance || "distance unknown"}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-gray-500 mb-3">
+                        <span className="text-sm">
+                          {shop.rating || "rating unknown"}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>

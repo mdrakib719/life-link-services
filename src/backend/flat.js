@@ -22,16 +22,9 @@ client
   .connect()
   .then(async () => {
     db = client.db("test");
-    const collection = db.collection("flat");
-    const flats = await collection.find({}).toArray();
-    const flat = flats.map((flat) => ({
-      id: flat._id,
-      name: flat.name,
-      location: flat.location,
-    }));
-    console.log("Data:", flat);
+    const flatCollection = db.collection("flat");
+    const shopCollection = db.collection("shop");
 
-    // Change 'scm' to your database name
     console.log("Connected to the database");
   })
   .catch((error) => {
@@ -40,15 +33,25 @@ client
 
 app.get("/api/data", async (req, res) => {
   try {
-    const collection = db.collection("flat");
-    const flats = await collection.find({}).toArray();
+    const flatCollection = db.collection("flat");
+    const flats = await flatCollection.find({}).toArray();
     res.json(flats);
   } catch (error) {
     res.status(500).json({ message: "Error fetching flats", error });
   }
   try {
-    const collection = db.collection("shop");
-    const shops = await collection.find({}).toArray();
+    const shopCollection = db.collection("shop");
+    const shops = await shopCollection.find({}).toArray();
+    res.json(shops);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching shops", error });
+  }
+});
+
+app.get("/api/shopi", async (req, res) => {
+  try {
+    const shopCollection = db.collection("shop");
+    const shops = await shopCollection.find({}).toArray();
     res.json(shops);
   } catch (error) {
     res.status(500).json({ message: "Error fetching shops", error });
