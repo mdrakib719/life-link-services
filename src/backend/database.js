@@ -9,7 +9,11 @@ export default async function connectToDatabase() {
     await client.connect();
     console.log("Connected to the database");
     console.log("Data loaded successfully");
-    return client.db("test");
+    const db = client.db("test");
+    console.log("Database name:", db.databaseName);
+    const collection = db.collection("flat");
+    const data = await collection.find({}).toArray();
+    console.log("Data:", data);
   } catch (error) {
     console.error("Error connecting to the database:", error);
   }

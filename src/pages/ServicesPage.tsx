@@ -19,24 +19,29 @@ const ServicesPage = () => {
   const [error, setError] = useState(null); // To handle error state
 
   useEffect(() => {
-    // Fetch the flat data from the backend
     const fetchFlats = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/flats");
+        const response = await fetch("http://localhost:3000/api/data", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch flats");
         }
         const data = await response.json();
+        console.log(data); // Logs the raw data from the backend
         setFlats(data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err.message); // Set the error if there's an issue
         setLoading(false);
       }
     };
 
     fetchFlats();
-  }, []); // Empty dependency array means this will run once when the component mounts
+  }, []);
 
   return (
     <Layout>
@@ -93,32 +98,30 @@ const ServicesPage = () => {
                 <p>Loading flats...</p>
               ) : error ? (
                 <p>Error: {error}</p>
+              ) : flats.length === 0 ? (
+                <p>No flats available.</p>
               ) : (
                 flats.map((flat) => (
                   <Card key={flat._id} className="overflow-hidden card-hover">
-                    <div className="h-48 overflow-hidden">
-                      <img
-                        src={flat.image || "default-image.jpg"} // Fallback image if no image is available
-                        alt={flat.title}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                      />
-                    </div>
                     <CardContent className="p-6">
                       <h3 className="text-xl font-semibold mb-2">
-                        {flat.title}
+                        {flat.title || "No title"}{" "}
+                        {/* Fallback for missing title */}
                       </h3>
                       <div className="flex items-center text-gray-500 mb-2">
                         <MapPin size={16} className="mr-1" />
-                        <span className="text-sm">{flat.location}</span>
+                        <span className="text-sm">
+                          {flat.location || "Unknown location"}
+                        </span>
                       </div>
                       <div className="flex items-center text-gray-500 mb-3">
                         <span className="text-sm">
-                          {flat.distanceFromCampus}
+                          {flat.distanceFromCampus || "Distance unknown"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-life-blue-500 font-semibold">
-                          {flat.pricePerMonth}
+                          {flat.pricePerMonth || "Price not available"}
                         </span>
                         <div className="flex items-center">
                           <Star
