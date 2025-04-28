@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
+  const [flats, setFlats] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [meals, setMeals] = useState([]);
+  const [carts, setCarts] = useState([]); // <-- New State
   const [newFlat, setNewFlat] = useState({
     title: "",
     location: "",
@@ -24,151 +28,133 @@ const AdminDashboard = () => {
     price: "",
     rating: "",
   });
-  const [flats, setFlats] = useState([]);
-  const [shops, setShops] = useState([]);
-  const [meals, setMeals] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      navigate("/");
-      return;
-    }
+    if (!storedUser) return navigate("/");
     const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "admin") {
-      navigate("/");
-      return;
-    }
+    if (parsedUser.role !== "admin") navigate("/");
 
     fetchUsers();
     fetchFlats();
     fetchShops();
     fetchMeals();
+    fetchCarts(); // <-- Fetch carts when page loads
   }, [navigate]);
 
   const fetchUsers = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/use");
-      const data = await res.json();
-      setUsers(data);
-    } catch (error) {
+      setUsers(await res.json());
+    } catch {
       toast.error("Failed to fetch users");
     }
   };
 
   const fetchFlats = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/flats");
-      const data = await res.json();
-      setFlats(data);
-    } catch (error) {
+      const res = await fetch("http://localhost:3000/api/data");
+      setFlats(await res.json());
+    } catch {
       toast.error("Failed to fetch flats");
     }
   };
 
   const fetchShops = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/shops");
-      const data = await res.json();
-      setShops(data);
-    } catch (error) {
+      const res = await fetch("http://localhost:3000/api/shopi");
+      setShops(await res.json());
+    } catch {
       toast.error("Failed to fetch shops");
     }
   };
 
   const fetchMeals = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/meals");
-      const data = await res.json();
-      setMeals(data);
-    } catch (error) {
+      const res = await fetch("http://localhost:3000/api/food");
+      setMeals(await res.json());
+    } catch {
       toast.error("Failed to fetch meals");
     }
   };
 
-  // Handle Flat Form Submission
+  const fetchCarts = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/carts");
+      setCarts(await res.json());
+    } catch {
+      toast.error("Failed to fetch carts");
+    }
+  };
+
   const handleFlatSubmit = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/add-flat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newFlat),
       });
-      const data = await res.json();
       if (res.ok) {
-        toast.success("Flat added successfully!");
-        setFlats((prevFlats) => [...prevFlats, newFlat]); // Update state directly
-      } else {
-        toast.error(data.message || "Failed to add flat");
+        toast.success("Flat added");
+        setNewFlat({
+          title: "",
+          location: "",
+          distanceFromCampus: "",
+          pricePerMonth: "",
+        });
+        fetchFlats();
       }
-    } catch (error) {
+    } catch {
       toast.error("Error adding flat");
     }
   };
 
-  // Handle Shop Form Submission
   const handleShopSubmit = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/add-shop", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newShop),
       });
-      const data = await res.json();
       if (res.ok) {
-        toast.success("Shop added successfully!");
-        setShops((prevShops) => [...prevShops, newShop]); // Update state directly
-      } else {
-        toast.error(data.message || "Failed to add shop");
+        toast.success("Shop added");
+        setNewShop({ title: "", location: "", distance: "", rating: "" });
+        fetchShops();
       }
-    } catch (error) {
+    } catch {
       toast.error("Error adding shop");
     }
   };
 
-  // Handle Meal Form Submission
   const handleMealSubmit = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/add-meal", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newMeal),
       });
-      const data = await res.json();
       if (res.ok) {
-        toast.success("Meal added successfully!");
-        setMeals((prevMeals) => [...prevMeals, newMeal]); // Update state directly
-      } else {
-        toast.error(data.message || "Failed to add meal");
+        toast.success("Meal added");
+        setNewMeal({ title: "", description: "", price: "", rating: "" });
+        fetchMeals();
       }
-    } catch (error) {
+    } catch {
       toast.error("Error adding meal");
     }
   };
 
-  // Approve and Cancel Verification Functions...
   const verifyUser = async (id: string) => {
     try {
       const res = await fetch(`http://localhost:3000/api/verify-user/${id}`, {
         method: "PUT",
       });
-
       if (res.ok) {
-        toast.success("User verified successfully!");
-        fetchUsers(); // Refresh user list
-      } else {
-        const data = await res.json();
-        toast.error(data.message || "Failed to verify user");
+        toast.success("User verified");
+        fetchUsers();
       }
-    } catch (error) {
-      toast.error("Network error. Please try again.");
+    } catch {
+      toast.error("Failed to verify user");
     }
   };
 
@@ -176,68 +162,179 @@ const AdminDashboard = () => {
     try {
       const res = await fetch(
         `http://localhost:3000/api/cancel-verify-user/${id}`,
+        { method: "PUT" }
+      );
+      if (res.ok) {
+        toast.success("Verification cancelled");
+        fetchUsers();
+      }
+    } catch {
+      toast.error("Failed to cancel verification");
+    }
+  };
+
+  const deleteFlat = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/delete-flat/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Flat deleted");
+        fetchFlats();
+      }
+    } catch {
+      toast.error("Failed to delete flat");
+    }
+  };
+
+  const deleteShop = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/delete-shop/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Shop deleted");
+        fetchShops();
+      }
+    } catch {
+      toast.error("Failed to delete shop");
+    }
+  };
+
+  const deleteMeal = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/delete-meal/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Meal deleted");
+        fetchMeals();
+      }
+    } catch {
+      toast.error("Failed to delete meal");
+    }
+  };
+
+  const updateMealPrice = async (id: string) => {
+    const newPrice = prompt("Enter new price:");
+    if (!newPrice) return;
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/update-meal-price/${id}`,
         {
           method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ price: Number(newPrice) }),
         }
       );
-
       if (res.ok) {
-        toast.success("User verification cancelled!");
-        fetchUsers(); // Refresh user list
-      } else {
-        const data = await res.json();
-        toast.error(data.message || "Failed to cancel verification");
+        toast.success("Price updated");
+        fetchMeals();
       }
-    } catch (error) {
-      toast.error("Network error. Please try again.");
+    } catch {
+      toast.error("Failed to update meal price");
+    }
+  };
+
+  const approveCart = async (cartId: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/approve-cart/${cartId}`,
+        { method: "PUT" }
+      );
+      if (res.ok) {
+        toast.success("Cart Approved");
+        fetchCarts();
+      } else {
+        toast.error("Failed to approve cart");
+      }
+    } catch {
+      toast.error("Network error");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center py-10 px-4">
-      <Card className="w-full max-w-5xl">
+      <Card className="w-full max-w-6xl">
         <CardHeader>
           <CardTitle className="text-3xl text-center text-life-blue-500">
             Admin Dashboard
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <h2 className="text-center text-xl font-semibold text-gray-700">
-            Manage Users
-          </h2>
+        <CardContent className="space-y-12">
+          {/* Manage Users */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Manage Users</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {users.map((user) => (
+                <div key={user._id} className="border p-4 rounded shadow">
+                  <p>
+                    <strong>Name:</strong> {user.name}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {user.email}
+                  </p>
+                  <p>
+                    <strong>Role:</strong> {user.role}
+                  </p>
+                  <p>
+                    <strong>Verified:</strong> {user.verified ? "✅" : "❌"}
+                  </p>
+                  {!user.verified ? (
+                    <Button
+                      onClick={() => verifyUser(user._id)}
+                      className="bg-green-500 mt-2"
+                    >
+                      Approve
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => cancelVerifyUser(user._id)}
+                      className="bg-red-500 mt-2"
+                    >
+                      Cancel Verify
+                    </Button>
+                  )}
 
-          {/* User list */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {users.map((user) => (
-              <Card key={user._id} className="p-4 border">
-                <h3 className="font-bold text-lg">{user.name}</h3>
-                <p className="text-gray-600 text-sm">{user.email}</p>
-                <p className="text-gray-600 text-sm">Role: {user.role}</p>
-                <p className="text-gray-600 text-sm">
-                  Verified: {user.verified ? "Yes ✅" : "No ❌"}
-                </p>
-
-                {!user.verified && (
-                  <Button
-                    onClick={() => verifyUser(user._id)}
-                    className="mt-2 bg-green-500 hover:bg-green-600"
-                  >
-                    Approve Verification
-                  </Button>
-                )}
-
-                {user.verified && (
-                  <Button
-                    onClick={() => cancelVerifyUser(user._id)}
-                    className="mt-2 bg-red-500 hover:bg-red-600"
-                  >
-                    Cancel Verification
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </div>
-
+                  {/* User Cart Orders */}
+                  <div className="mt-4 space-y-2">
+                    <h3 className="text-md font-semibold">Cart Orders:</h3>
+                    {carts.filter((cart) => cart.email === user.email)
+                      .length === 0 ? (
+                      <p className="text-gray-400 text-sm">No Cart Items</p>
+                    ) : (
+                      carts
+                        .filter((cart) => cart.email === user.email)
+                        .map((cartItem) => (
+                          <div
+                            key={cartItem._id}
+                            className="p-2 border rounded flex justify-between items-center"
+                          >
+                            <div>
+                              <p>
+                                <strong>Title:</strong> {cartItem.title}
+                              </p>
+                              <p>
+                                <strong>Status:</strong> {cartItem.status}
+                              </p>
+                            </div>
+                            {cartItem.status === "process" && (
+                              <Button
+                                size="sm"
+                                className="bg-blue-500 hover:bg-blue-600"
+                                onClick={() => approveCart(cartItem._id)}
+                              >
+                                Approve
+                              </Button>
+                            )}
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
           {/* Flat Form */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Add Flat</h3>
@@ -362,6 +459,100 @@ const AdminDashboard = () => {
             />
             <Button onClick={handleMealSubmit}>Add Meal</Button>
           </div>
+
+          {/* Flats Section */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Manage Flats</h2>
+            <div className="space-y-4">
+              {flats.map((flat) => (
+                <div
+                  key={flat._id}
+                  className="border p-4 rounded shadow flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>Title:</strong> {flat.title}
+                    </p>
+                    <p>
+                      <strong>Location:</strong> {flat.location}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => deleteFlat(flat._id)}
+                    className="bg-red-500"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Shops Section */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Manage Shops</h2>
+            <div className="space-y-4">
+              {shops.map((shop) => (
+                <div
+                  key={shop._id}
+                  className="border p-4 rounded shadow flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>Title:</strong> {shop.title}
+                    </p>
+                    <p>
+                      <strong>Location:</strong> {shop.location}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => deleteShop(shop._id)}
+                    className="bg-red-500"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Meals Section */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Manage Meals</h2>
+            <div className="space-y-4">
+              {meals.map((meal) => (
+                <div
+                  key={meal._id}
+                  className="border p-4 rounded shadow flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>Title:</strong> {meal.title}
+                    </p>
+                    <p>
+                      <strong>Price:</strong> {meal.price}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => deleteMeal(meal._id)}
+                      className="bg-red-500"
+                    >
+                      Delete
+                    </Button>
+                    {meal.price === 0 && (
+                      <Button
+                        onClick={() => updateMealPrice(meal._id)}
+                        className="bg-blue-500"
+                      >
+                        Set Price
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </CardContent>
       </Card>
     </div>

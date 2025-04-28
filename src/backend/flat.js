@@ -1,67 +1,58 @@
 import express from "express";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb"; // Import ObjectId
 import cors from "cors";
+
 const app = express();
 const PORT = 3000;
+
+// Middlewares
 app.use(cors());
 app.use(express.json());
+
+// MongoDB Connection
 const url =
-  "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm"; // Replace with your database name
+  "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm";
 const client = new MongoClient(url);
 let db;
+let flatCollection;
+let shopCollection;
+let mealCollection;
+let cartCollection;
+let userCollection;
 
 client
   .connect()
-  .then(async () => {
+  .then(() => {
     db = client.db("test");
-    const flatCollection = db.collection("flat");
-    const shopCollection = db.collection("shop");
-    const mealCollection = db.collection("meal");
+    flatCollection = db.collection("flat");
+    shopCollection = db.collection("shop");
+    mealCollection = db.collection("meal");
+    cartCollection = db.collection("cart");
+    userCollection = db.collection("user");
 
-    console.log("Connected to the database");
+    console.log("✅ Connected to MongoDB");
   })
   .catch((error) => {
-    console.error("MongoDB connection error:", error);
+    console.error("❌ MongoDB connection error:", error);
   });
 
+// ------------------------------------------------
+// 🏡 Flat, 🍽️ Shop, 🍛 Meal routes
+// ------------------------------------------------
+
+// Fetch Flats
 app.get("/api/data", async (req, res) => {
   try {
-    const flatCollection = db.collection("flat");
     const flats = await flatCollection.find({}).toArray();
     res.json(flats);
   } catch (error) {
     res.status(500).json({ message: "Error fetching flats", error });
   }
-  try {
-    const shopCollection = db.collection("shop");
-    const shops = await shopCollection.find({}).toArray();
-    res.json(shops);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching shops", error });
-  }
-  try {
-    const mealCollection = db.collection("meal");
-    const meals = await shopCollection.find({}).toArray();
-    res.json(meals);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching meals", error });
-  }
 });
 
-app.get("/api/data", async (req, res) => {
-  try {
-    const flatCollection = db.collection("flat");
-    const flats = await flatCollection.find({}).toArray();
-    res.json(flats); // ✅ Only one response here
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching flats", error });
-  }
-});
-
-// Fetch all shops
+// Fetch Shops
 app.get("/api/shopi", async (req, res) => {
   try {
-    const shopCollection = db.collection("shop");
     const shops = await shopCollection.find({}).toArray();
     res.json(shops);
   } catch (error) {
@@ -69,10 +60,9 @@ app.get("/api/shopi", async (req, res) => {
   }
 });
 
-// Fetch all meals
+// Fetch Meals
 app.get("/api/food", async (req, res) => {
   try {
-    const mealCollection = db.collection("meal");
     const meals = await mealCollection.find({}).toArray();
     res.json(meals);
   } catch (error) {
@@ -80,101 +70,150 @@ app.get("/api/food", async (req, res) => {
   }
 });
 
-app.post("/api/add-cart", async (req, res) => {
-  try {
-    const { email, item, status } = req.body;
-    const cartCollection = db.collection("cart");
+// ------------------------------------------------
+// ➕ Add Flat, Shop, Meal
+// ------------------------------------------------
 
+app.post("/api/add-flat", async (req, res) => {
+  const { title, location, distanceFromCampus, pricePerMonth } = req.body;
+  try {
+    await flatCollection.insertOne({
+      title,
+      location,
+      distanceFromCampus,
+      pricePerMonth,
+    });
+    res.status(201).json({ message: "Flat added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding flat", error });
+  }
+});
+
+app.post("/api/add-shop", async (req, res) => {
+  const { title, location, distance, rating } = req.body;
+  try {
+    await shopCollection.insertOne({ title, location, distance, rating });
+    res.status(201).json({ message: "Shop added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding shop", error });
+  }
+});
+
+app.post("/api/add-meal", async (req, res) => {
+  const { title, description, price, rating } = req.body;
+  try {
+    await mealCollection.insertOne({ title, description, price, rating });
+    res.status(201).json({ message: "Meal added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding meal", error });
+  }
+});
+
+// ------------------------------------------------
+// 🛒 Cart System
+// ------------------------------------------------
+
+// Add to cart
+app.post("/api/add-cart", async (req, res) => {
+  const { email, item, status } = req.body;
+  try {
     await cartCollection.insertOne({
       email,
       item,
       status,
       createdAt: new Date(),
     });
-
     res.status(201).json({ message: "Added to cart successfully" });
   } catch (error) {
-    console.error("Error adding to cart:", error);
-    res.status(500).json({ message: "Error adding to cart" });
+    res.status(500).json({ message: "Error adding to cart", error });
   }
 });
 
-//singup
-async function addUser({ name, email, password, role }) {
+// Get all carts
+app.get("/api/carts", async (req, res) => {
   try {
-    // Log to see the data
-    console.log("Adding user with data:", { name, email, password, role });
+    const carts = await cartCollection.find({}).toArray();
+    res.status(200).json(carts);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching carts", error });
+  }
+});
 
-    const collection = db.collection("user");
+// Approve cart
+app.put("/api/approve-cart/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await cartCollection.updateOne(
+      { _id: new ObjectId(id), status: "process" },
+      { $set: { status: "confirm" } }
+    );
 
+    if (result.modifiedCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "Cart not found or already approved" });
+    }
+
+    res.status(200).json({ message: "Cart approved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error approving cart", error });
+  }
+});
+
+// Cancel cart (only if status = process)
+app.delete("/api/delete-cart/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const cart = await cartCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+    if (cart.status === "confirm") {
+      return res.status(400).json({ message: "Cannot cancel confirmed order" });
+    }
+
+    await cartCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "Cart deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error cancelling cart", error });
+  }
+});
+
+// ------------------------------------------------
+// 👥 User Authentication
+// ------------------------------------------------
+
+// Signup
+app.post("/api/submitForm", async (req, res) => {
+  const { name, email, password, role } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
     const newUser = {
       name,
       email,
-      password, // Ensure password is included
-      role: role || "user", // Default to 'user' if role is not provided
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      password,
+      role: role || "user",
       verified: false,
-      submit: false,
+      createdAt: new Date(),
     };
-
-    const result = await collection.insertOne(newUser); // Insert the correct object
-
-    // Log the result
-    console.log("User added:", result);
-    return result;
+    await userCollection.insertOne(newUser);
+    res.status(201).json({ message: "User created successfully" });
   } catch (error) {
-    console.log("There is a problem adding the user", error);
-    throw new Error("Error adding user");
-  }
-}
-
-// POST Route to handle user sign-up
-app.post("/api/submitForm", async (req, res) => {
-  const { name, email, password, role } = req.body;
-
-  try {
-    // Log the incoming data
-    console.log("Received form data:", { name, email, password, role });
-
-    // Validate data (basic example)
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Call addUser function
-    const result = await addUser({ name, email, password, role });
-    if (result) {
-      res.status(201).json({
-        message: "User created successfully",
-        user: { name, email, role },
-      });
-    } else {
-      res.status(500).json({ message: "Error creating user" });
-    }
-  } catch (error) {
-    console.error("Error in /submitForm:", error);
-    res.status(500).json({ message: "Error storing user", error });
+    res.status(500).json({ message: "Error creating user", error });
   }
 });
 
-//Logging the server start
+// Login
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    const collection = db.collection("user");
-    const user = await collection.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const user = await userCollection.findOne({ email });
+    if (!user || user.password !== password) {
+      return res.status(400).json({ message: "Invalid credentials" });
     }
-
-    if (user.password !== password) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    // If match, send full user info
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -185,147 +224,110 @@ app.post("/api/login", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error during login", error });
   }
 });
 
-//Dashbroad
-
+// Fetch all users
 app.get("/api/use", async (req, res) => {
   try {
-    const collection = db.collection("user");
-    const users = await collection.find({}).toArray();
-    res.status(200).json(users); // Send the list of users
+    const users = await userCollection.find({}).toArray();
+    res.status(200).json(users);
   } catch (error) {
-    console.error("Error fetching users:", error); // Log detailed error
     res.status(500).json({ message: "Error fetching users", error });
   }
 });
 
-// Approve (verify) user by ID
-import { ObjectId } from "mongodb"; // Ensure you import ObjectId
-
-// Approve (verify) user by ID
+// Approve user
 app.put("/api/verify-user/:id", async (req, res) => {
   const { id } = req.params;
-
-  // Validate ObjectId
-  if (!ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid user ID format" });
-  }
-
   try {
-    const collection = db.collection("user");
-
-    // Update the user's 'verified' status to true
-    const result = await collection.updateOne(
+    await userCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { verified: true } }
     );
-
-    if (result.modifiedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "User not found or already verified" });
-    }
-
-    res.status(200).json({ message: "User verified successfully" });
+    res.status(200).json({ message: "User verified" });
   } catch (error) {
-    console.error("Error verifying user:", error);
     res.status(500).json({ message: "Error verifying user", error });
   }
 });
 
-// Cancel (unverify) user by ID
+// Cancel verify
 app.put("/api/cancel-verify-user/:id", async (req, res) => {
   const { id } = req.params;
-
-  // Validate ObjectId
-  if (!ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid user ID format" });
-  }
-
   try {
-    const collection = db.collection("user");
-
-    // Update the user's 'verified' status to false
-    const result = await collection.updateOne(
+    await userCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { verified: false } }
     );
-
-    if (result.modifiedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "User not found or already unverified" });
-    }
-
-    res.status(200).json({ message: "User unverified successfully" });
+    res.status(200).json({ message: "User unverified" });
   } catch (error) {
-    console.error("Error cancelling verification:", error);
     res.status(500).json({ message: "Error cancelling verification", error });
   }
 });
 
+// ------------------------------------------------
+// 🗑️ Delete Flat, Shop, Meal
+// ------------------------------------------------
+
+app.delete("/api/delete-flat/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await flatCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "Flat deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting flat", error });
+  }
+});
+
+app.delete("/api/delete-shop/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await shopCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "Shop deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting shop", error });
+  }
+});
+
+app.delete("/api/delete-meal/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await mealCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "Meal deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting meal", error });
+  }
+});
+
+// Update Meal Price (only if price is 0)
+app.put("/api/update-meal-price/:id", async (req, res) => {
+  const { id } = req.params;
+  const { price } = req.body;
+  try {
+    const meal = await mealCollection.findOne({ _id: new ObjectId(id) });
+    if (!meal) {
+      return res.status(404).json({ message: "Meal not found" });
+    }
+    if (meal.price !== 0) {
+      return res
+        .status(400)
+        .json({ message: "Only meals with price 0 can be updated" });
+    }
+    await mealCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { price } }
+    );
+    res.status(200).json({ message: "Meal price updated" });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating meal price", error });
+  }
+});
+
+// ------------------------------------------------
+// Server Listen
+// ------------------------------------------------
+
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-// Add a new flat
-app.post("/api/add-flat", async (req, res) => {
-  const { title, location, distanceFromCampus, pricePerMonth } = req.body;
-
-  try {
-    const collection = db.collection("flat");
-    const result = await collection.insertOne({
-      title,
-      location,
-      distanceFromCampus,
-      pricePerMonth,
-    });
-
-    res.status(201).json({ message: "Flat added successfully", result });
-  } catch (error) {
-    console.error("Error adding flat:", error);
-    res.status(500).json({ message: "Error adding flat", error });
-  }
-});
-// Add a new shop
-app.post("/api/add-shop", async (req, res) => {
-  const { title, location, distance, rating } = req.body;
-
-  try {
-    const collection = db.collection("shop");
-    const result = await collection.insertOne({
-      title,
-      location,
-      distance,
-      rating,
-    });
-
-    res.status(201).json({ message: "Shop added successfully", result });
-  } catch (error) {
-    console.error("Error adding shop:", error);
-    res.status(500).json({ message: "Error adding shop", error });
-  }
-});
-// Add a new meal (example: simple meal data)
-app.post("/api/add-meal", async (req, res) => {
-  const { title, description, price, rating } = req.body;
-
-  try {
-    const collection = db.collection("meal");
-    const result = await collection.insertOne({
-      title,
-      description,
-      price,
-      rating,
-    });
-
-    res.status(201).json({ message: "Meal added successfully", result });
-  } catch (error) {
-    console.error("Error adding meal:", error);
-    res.status(500).json({ message: "Error adding meal", error });
-  }
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
