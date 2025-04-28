@@ -230,3 +230,61 @@ app.put("/api/cancel-verify-user/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+// Add a new flat
+app.post("/api/add-flat", async (req, res) => {
+  const { title, location, distanceFromCampus, pricePerMonth } = req.body;
+
+  try {
+    const collection = db.collection("flat");
+    const result = await collection.insertOne({
+      title,
+      location,
+      distanceFromCampus,
+      pricePerMonth,
+    });
+
+    res.status(201).json({ message: "Flat added successfully", result });
+  } catch (error) {
+    console.error("Error adding flat:", error);
+    res.status(500).json({ message: "Error adding flat", error });
+  }
+});
+// Add a new shop
+app.post("/api/add-shop", async (req, res) => {
+  const { title, location, distance, rating } = req.body;
+
+  try {
+    const collection = db.collection("shop");
+    const result = await collection.insertOne({
+      title,
+      location,
+      distance,
+      rating,
+    });
+
+    res.status(201).json({ message: "Shop added successfully", result });
+  } catch (error) {
+    console.error("Error adding shop:", error);
+    res.status(500).json({ message: "Error adding shop", error });
+  }
+});
+// Add a new meal (example: simple meal data)
+app.post("/api/add-meal", async (req, res) => {
+  const { title, description, price, rating } = req.body;
+
+  try {
+    const collection = db.collection("meal");
+    const result = await collection.insertOne({
+      title,
+      description,
+      price,
+      rating,
+    });
+
+    res.status(201).json({ message: "Meal added successfully", result });
+  } catch (error) {
+    console.error("Error adding meal:", error);
+    res.status(500).json({ message: "Error adding meal", error });
+  }
+});

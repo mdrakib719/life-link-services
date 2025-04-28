@@ -105,7 +105,7 @@ const SignUpForm = () => {
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
             <Input
               id="role"
@@ -116,7 +116,7 @@ const SignUpForm = () => {
               onChange={handleChange}
               required
             />
-          </div>
+          </div> */}
 
           <Button
             type="submit"
