@@ -1,20 +1,12 @@
 import express from "express";
 import { MongoClient } from "mongodb";
 import cors from "cors";
-
-// Initialize express app
 const app = express();
 const PORT = 3000;
-
-// Middleware to allow frontend connection
 app.use(cors());
 app.use(express.json());
-
-// MongoDB Connection URI
 const url =
   "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm"; // Replace with your database name
-
-// Connect to MongoDB
 const client = new MongoClient(url);
 let db;
 
@@ -24,6 +16,7 @@ client
     db = client.db("test");
     const flatCollection = db.collection("flat");
     const shopCollection = db.collection("shop");
+    const mealCollection = db.collection("meal");
 
     console.log("Connected to the database");
   })
@@ -46,8 +39,26 @@ app.get("/api/data", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching shops", error });
   }
+  try {
+    const mealCollection = db.collection("meal");
+    const meals = await shopCollection.find({}).toArray();
+    res.json(meals);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching meals", error });
+  }
 });
 
+app.get("/api/data", async (req, res) => {
+  try {
+    const flatCollection = db.collection("flat");
+    const flats = await flatCollection.find({}).toArray();
+    res.json(flats); // ✅ Only one response here
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching flats", error });
+  }
+});
+
+// Fetch all shops
 app.get("/api/shopi", async (req, res) => {
   try {
     const shopCollection = db.collection("shop");
@@ -55,6 +66,36 @@ app.get("/api/shopi", async (req, res) => {
     res.json(shops);
   } catch (error) {
     res.status(500).json({ message: "Error fetching shops", error });
+  }
+});
+
+// Fetch all meals
+app.get("/api/food", async (req, res) => {
+  try {
+    const mealCollection = db.collection("meal");
+    const meals = await mealCollection.find({}).toArray();
+    res.json(meals);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching meals", error });
+  }
+});
+
+app.post("/api/add-cart", async (req, res) => {
+  try {
+    const { email, item, status } = req.body;
+    const cartCollection = db.collection("cart");
+
+    await cartCollection.insertOne({
+      email,
+      item,
+      status,
+      createdAt: new Date(),
+    });
+
+    res.status(201).json({ message: "Added to cart successfully" });
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    res.status(500).json({ message: "Error adding to cart" });
   }
 });
 

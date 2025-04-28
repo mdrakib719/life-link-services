@@ -196,8 +196,6 @@
 //   );
 // };
 
-// export default ServicesPage;
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -214,40 +212,31 @@ import {
 } from "lucide-react";
 
 const ServicesPage = () => {
-  const [flats, setFlats] = useState([]); // To store the flat data
-  const [shops, setShops] = useState([]); // To store the shop data
-  const [loading, setLoading] = useState(true); // To handle loading state
-  const [error, setError] = useState(null); // To handle error state
-  const [searchQuery, setSearchQuery] = useState(""); // For search bar input
+  const [flats, setFlats] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [cartItem, setCartItem] = useState(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [showCartPopup, setShowCartPopup] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch flats
-        const flatsResponse = await fetch("http://localhost:3000/api/data", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!flatsResponse.ok) {
-          throw new Error("Failed to fetch flats");
-        }
+        const flatsResponse = await fetch("http://localhost:3000/api/data");
         const flatsData = await flatsResponse.json();
         setFlats(flatsData);
 
-        // Fetch shops
-        const shopsResponse = await fetch("http://localhost:3000/api/shopi", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!shopsResponse.ok) {
-          throw new Error("Failed to fetch shops");
-        }
+        const shopsResponse = await fetch("http://localhost:3000/api/shopi");
         const shopsData = await shopsResponse.json();
         setShops(shopsData);
+
+        const mealsResponse = await fetch("http://localhost:3000/api/food");
+        const mealsData = await mealsResponse.json();
+        setMeals(mealsData);
 
         setLoading(false);
       } catch (err) {
@@ -258,6 +247,42 @@ const ServicesPage = () => {
 
     fetchData();
   }, []);
+
+  const handleAddToCart = (item: any) => {
+    setCartItem(item);
+    setShowCartPopup(true);
+  };
+
+  const handleCartSubmit = async () => {
+    if (!emailInput) {
+      alert("Please enter your email.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/api/add-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailInput,
+          item: cartItem,
+          status: "process",
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Item added to cart successfully!");
+      } else {
+        alert(data.message || "Failed to add to cart.");
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+
+    setShowCartPopup(false);
+    setEmailInput("");
+  };
 
   return (
     <Layout>
@@ -287,15 +312,10 @@ const ServicesPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex-none w-full md:w-auto">
-              <Button className="w-full bg-life-blue-500 hover:bg-life-blue-600">
-                Search
-              </Button>
-            </div>
           </div>
         </div>
 
-        {/* Services Tabs */}
+        {/* Tabs */}
         <Tabs defaultValue="flats" className="w-full">
           <TabsList className="grid grid-cols-3 max-w-xl mx-auto mb-8">
             <TabsTrigger value="flats" className="flex gap-2 items-center">
@@ -312,15 +332,13 @@ const ServicesPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Flats Content */}
+          {/* Flats */}
           <TabsContent value="flats" className="animate-fade-in">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {loading ? (
                 <p>Loading flats...</p>
               ) : error ? (
                 <p>Error: {error}</p>
-              ) : flats.length === 0 ? (
-                <p>No flats available.</p>
               ) : (
                 flats
                   .filter(
@@ -334,33 +352,34 @@ const ServicesPage = () => {
                   )
                   .map((flat) => (
                     <Card key={flat._id} className="overflow-hidden card-hover">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-2">
+                      <CardContent className="p-6 space-y-3">
+                        <h3 className="text-xl font-semibold">
                           {flat.title || "No title"}
                         </h3>
-                        <div className="flex items-center text-gray-500 mb-2">
+                        <div className="flex items-center text-gray-500">
                           <MapPin size={16} className="mr-1" />
                           <span className="text-sm">
                             {flat.location || "Unknown location"}
                           </span>
                         </div>
-                        <div className="flex items-center text-gray-500 mb-3">
-                          <span className="text-sm">
-                            {flat.distanceFromCampus || "Distance unknown"}
-                          </span>
+                        <div className="text-sm text-gray-500">
+                          {flat.distanceFromCampus}
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-life-blue-500 font-semibold">
-                            {flat.pricePerMonth || "Price not available"}
+                            {flat.pricePerMonth}
                           </span>
-                          <div className="flex items-center">
-                            <Star
-                              size={16}
-                              className="text-yellow-500 mr-1 fill-yellow-500"
-                            />
-                            <span>4.5</span>
-                          </div>
+                          <Star
+                            size={16}
+                            className="text-yellow-500 mr-1 fill-yellow-500"
+                          />
                         </div>
+                        <Button
+                          className="w-full bg-lime-500 hover:bg-lime-600"
+                          onClick={() => handleAddToCart(flat)}
+                        >
+                          Add to Cart
+                        </Button>
                       </CardContent>
                     </Card>
                   ))
@@ -368,15 +387,60 @@ const ServicesPage = () => {
             </div>
           </TabsContent>
 
-          {/* Shops Content */}
+          {/* Meals */}
+          <TabsContent value="meals" className="animate-fade-in">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {loading ? (
+                <p>Loading meals...</p>
+              ) : error ? (
+                <p>Error: {error}</p>
+              ) : (
+                meals
+                  .filter(
+                    (meal) =>
+                      meal.title
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                      meal.description
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase())
+                  )
+                  .map((meal) => (
+                    <Card key={meal._id} className="overflow-hidden card-hover">
+                      <CardContent className="p-6 space-y-3">
+                        <h3 className="text-xl font-semibold">{meal.title}</h3>
+                        <div className="text-sm text-gray-500">
+                          {meal.description}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-life-blue-500 font-semibold">
+                            {meal.price}
+                          </span>
+                          <Star
+                            size={16}
+                            className="text-yellow-500 mr-1 fill-yellow-500"
+                          />
+                        </div>
+                        <Button
+                          className="w-full bg-lime-500 hover:bg-lime-600"
+                          onClick={() => handleAddToCart(meal)}
+                        >
+                          Add to Cart
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Shops */}
           <TabsContent value="shops" className="animate-fade-in">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {loading ? (
                 <p>Loading shops...</p>
               ) : error ? (
                 <p>Error: {error}</p>
-              ) : shops.length === 0 ? (
-                <p>No shops available.</p>
               ) : (
                 shops
                   .filter(
@@ -390,26 +454,24 @@ const ServicesPage = () => {
                   )
                   .map((shop) => (
                     <Card key={shop._id} className="overflow-hidden card-hover">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-semibold mb-2">
-                          {shop.title || "No name"}
-                        </h3>
-                        <div className="flex items-center text-gray-500 mb-2">
+                      <CardContent className="p-6 space-y-3">
+                        <h3 className="text-xl font-semibold">{shop.title}</h3>
+                        <div className="flex items-center text-gray-500">
                           <MapPin size={16} className="mr-1" />
-                          <span className="text-sm">
-                            {shop.location || "Unknown location"}
-                          </span>
+                          <span className="text-sm">{shop.location}</span>
                         </div>
-                        <div className="flex items-center text-gray-500 mb-3">
-                          <span className="text-sm">
-                            {shop.distance || "Distance unknown"}
-                          </span>
+                        <div className="text-sm text-gray-500">
+                          {shop.distance}
                         </div>
-                        <div className="flex items-center text-gray-500 mb-3">
-                          <span className="text-sm">
-                            {shop.rating || "Rating unknown"}
-                          </span>
+                        <div className="text-sm text-gray-500">
+                          Rating: {shop.rating}
                         </div>
+                        <Button
+                          className="w-full bg-lime-500 hover:bg-lime-600"
+                          onClick={() => handleAddToCart(shop)}
+                        >
+                          Add to Cart
+                        </Button>
                       </CardContent>
                     </Card>
                   ))
@@ -418,6 +480,35 @@ const ServicesPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Cart Popup */}
+      {showCartPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-md w-96">
+            <h2 className="text-xl mb-4 font-bold text-center">
+              Enter your email
+            </h2>
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              className="mb-4"
+            />
+            <div className="flex gap-4 justify-center">
+              <Button
+                className="bg-green-500 hover:bg-green-600"
+                onClick={handleCartSubmit}
+              >
+                Confirm
+              </Button>
+              <Button variant="outline" onClick={() => setShowCartPopup(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
