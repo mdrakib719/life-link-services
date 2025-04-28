@@ -1,10 +1,8 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 const SignUpForm = () => {
@@ -12,44 +10,59 @@ const SignUpForm = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    role: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle input change
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    
+
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Sign up form submitted:", formData);
-      toast.success("Account created! Please check your email to verify your account.");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/submitForm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("User created successfully!"); // Show notification
+
+        // Wait 3 seconds, then refresh
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000); // 2000ms = 2 seconds
+      } else {
+        toast.error(data.message || "Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again later.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Create an Account</CardTitle>
-        <CardDescription className="text-center">
-          Join LifeLink Services to access student-focused services
-        </CardDescription>
+        <CardTitle className="text-2xl font-bold text-center">
+          Create an Account
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +77,7 @@ const SignUpForm = () => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <Input
@@ -77,7 +90,7 @@ const SignUpForm = () => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -91,21 +104,20 @@ const SignUpForm = () => {
               minLength={8}
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="role">Role</Label>
             <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
+              id="role"
+              name="role"
+              type="text"
+              placeholder="Enter your role (Admin or User)"
+              value={formData.role}
               onChange={handleChange}
               required
-              minLength={8}
             />
           </div>
-          
+
           <Button
             type="submit"
             className="w-full bg-life-blue-500 hover:bg-life-blue-600"
@@ -114,19 +126,7 @@ const SignUpForm = () => {
             {isLoading ? "Creating Account..." : "Sign Up"}
           </Button>
         </form>
-        
-        <div className="mt-4 text-center text-sm">
-          <p>By signing up, you agree to our <Link to="/terms" className="text-life-blue-500 hover:underline">Terms</Link> and <Link to="/privacy" className="text-life-blue-500 hover:underline">Privacy Policy</Link>.</p>
-        </div>
       </CardContent>
-      <CardFooter className="flex justify-center border-t pt-4">
-        <p className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="text-life-blue-500 hover:underline">
-            Log In
-          </Link>
-        </p>
-      </CardFooter>
     </Card>
   );
 };

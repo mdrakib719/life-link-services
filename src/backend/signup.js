@@ -13,52 +13,21 @@ app.use(express.json());
 // MongoDB Connection URI
 const url =
   "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm"; // Replace with your database name
+let db;
 
 // Connect to MongoDB
 const client = new MongoClient(url);
-let db;
-
 client
   .connect()
-  .then(async () => {
-    db = client.db("test");
-    const flatCollection = db.collection("flat");
-    const shopCollection = db.collection("shop");
-
+  .then(() => {
+    db = client.db("test"); // Make sure this is the correct database name
     console.log("Connected to the database");
   })
   .catch((error) => {
     console.error("MongoDB connection error:", error);
   });
 
-app.get("/api/data", async (req, res) => {
-  try {
-    const flatCollection = db.collection("flat");
-    const flats = await flatCollection.find({}).toArray();
-    res.json(flats);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching flats", error });
-  }
-  try {
-    const shopCollection = db.collection("shop");
-    const shops = await shopCollection.find({}).toArray();
-    res.json(shops);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching shops", error });
-  }
-});
-
-app.get("/api/shopi", async (req, res) => {
-  try {
-    const shopCollection = db.collection("shop");
-    const shops = await shopCollection.find({}).toArray();
-    res.json(shops);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching shops", error });
-  }
-});
-
-//singup
+// Add User Function
 async function addUser({ name, email, password, role }) {
   try {
     // Log to see the data
@@ -104,10 +73,12 @@ app.post("/api/submitForm", async (req, res) => {
     // Call addUser function
     const result = await addUser({ name, email, password, role });
     if (result) {
-      res.status(201).json({
-        message: "User created successfully",
-        user: { name, email, role },
-      });
+      res
+        .status(201)
+        .json({
+          message: "User created successfully",
+          user: { name, email, role },
+        });
     } else {
       res.status(500).json({ message: "Error creating user" });
     }
@@ -117,6 +88,7 @@ app.post("/api/submitForm", async (req, res) => {
   }
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
