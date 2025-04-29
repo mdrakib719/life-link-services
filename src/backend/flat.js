@@ -507,3 +507,21 @@ app.get("/api/messages", async (req, res) => {
     res.status(500).json({ message: "Error fetching messages", error });
   }
 });
+
+app.get("/api/mess", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const messages = await db
+      .collection("contactMessages")
+      .find({ email })
+      .sort({ timestamp: -1 })
+      .toArray();
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error fetching contact messages:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
