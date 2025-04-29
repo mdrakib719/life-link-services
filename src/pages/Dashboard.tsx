@@ -18,21 +18,49 @@ interface CartItem {
   status: string;
 }
 
+interface ContactMessage {
+  _id: string;
+  email: string;
+  message: string;
+  subject: string;
+  date: string;
+}
+
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]); // ✅ Correct messages state here
+  const [customMeal, setCustomMeal] = useState({
+    title: "",
+    description: "",
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       fetchCartItems(parsedUser.email);
+      fetchMessages(parsedUser.email); // ✅ Only once
     } else {
       navigate("/");
     }
   }, [navigate]);
+
+  const fetchMessages = async (email: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/messages?email=${email}`
+      );
+      const data = await res.json();
+      setMessages(data);
+    } catch (error) {
+      console.error("Failed to fetch messages", error);
+    }
+  };
 
   const fetchCartItems = async (email: string) => {
     try {
@@ -70,11 +98,6 @@ const Dashboard = () => {
       toast.error("Network error. Please try again.");
     }
   };
-  // State for custom meal
-  const [customMeal, setCustomMeal] = useState({
-    title: "",
-    description: "",
-  });
 
   const handleCustomMealSubmit = async () => {
     if (!customMeal.title || !customMeal.description) {
@@ -202,6 +225,7 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
               Create Your Own Meal 🍽️
@@ -234,6 +258,26 @@ const Dashboard = () => {
               </Button>
             </div>
           </div>
+
+          {/* Messages Section */}
+          {messages.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+                Your Messages 💬
+              </h2>
+              <div className="space-y-4">
+                {messages.map((msg) => (
+                  <Card key={msg._id} className="p-4 bg-white border">
+                    <h4 className="font-semibold">{msg.subject}</h4>
+                    <p className="text-sm text-gray-600">{msg.message}</p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Date: {new Date(msg.date).toLocaleString()}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

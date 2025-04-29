@@ -9,7 +9,11 @@ const AdminDashboard = () => {
   const [flats, setFlats] = useState([]);
   const [shops, setShops] = useState([]);
   const [meals, setMeals] = useState([]);
-  const [carts, setCarts] = useState([]); // <-- New State
+  const [carts, setCarts] = useState([]);
+  const [contactMessages, setContactMessages] = useState([]);
+  const [reply, setReply] = useState("");
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  // <-- New State
   const [newFlat, setNewFlat] = useState({
     title: "",
     location: "",
@@ -40,7 +44,8 @@ const AdminDashboard = () => {
     fetchFlats();
     fetchShops();
     fetchMeals();
-    fetchCarts(); // <-- Fetch carts when page loads
+    fetchCarts();
+    fetchContactMessages(); // <-- Add this line
   }, [navigate]);
 
   const fetchUsers = async () => {
@@ -253,6 +258,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchContactMessages = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/contact-messages");
+      setContactMessages(await res.json());
+    } catch {
+      toast.error("Failed to fetch contact messages");
+    }
+  };
+
+  const handleReply = async (messageId) => {
+    if (!reply) return;
+
+    const res = await fetch(
+      `http://localhost:3000/api/contact-messages/${messageId}/reply`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reply }),
+      }
+    );
+
+    const data = await res.json();
+    if (res.ok) {
+      toast.success("Reply sent");
+      setReply("");
+      fetchContactMessages();
+    } else {
+      toast.error(data.message || "Failed to send reply");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-10 px-4">
       <Card className="w-full max-w-6xl">
@@ -376,7 +412,6 @@ const AdminDashboard = () => {
             />
             <Button onClick={handleFlatSubmit}>Add Flat</Button>
           </div>
-
           {/* Shop Form */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Add Shop</h3>
@@ -418,7 +453,6 @@ const AdminDashboard = () => {
             />
             <Button onClick={handleShopSubmit}>Add Shop</Button>
           </div>
-
           {/* Meal Form */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Add Meal</h3>
@@ -459,7 +493,6 @@ const AdminDashboard = () => {
             />
             <Button onClick={handleMealSubmit}>Add Meal</Button>
           </div>
-
           {/* Flats Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Manage Flats</h2>
@@ -487,7 +520,6 @@ const AdminDashboard = () => {
               ))}
             </div>
           </section>
-
           {/* Shops Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Manage Shops</h2>
@@ -515,7 +547,6 @@ const AdminDashboard = () => {
               ))}
             </div>
           </section>
-
           {/* Meals Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Manage Meals</h2>
@@ -553,6 +584,61 @@ const AdminDashboard = () => {
               ))}
             </div>
           </section>
+          {/* Contact Messages Section */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">
+              Manage Contact Messages
+            </h2>
+            <div className="space-y-4">
+              {contactMessages.map((message) => (
+                <div
+                  key={message._id}
+                  className="border p-4 rounded shadow flex flex-col"
+                >
+                  <div>
+                    <p>
+                      <strong>Name:</strong> {message.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {message.email}
+                    </p>
+                    <p>
+                      <strong>Subject:</strong> {message.subject}
+                    </p>
+                    <p>
+                      <strong>Message:</strong> {message.message}
+                    </p>
+                    <p>
+                      <strong>Status:</strong>{" "}
+                      {message.answered ? "Answered" : "Pending"}
+                    </p>
+                    {message.answered && (
+                      <div>
+                        <strong>Reply:</strong> {message.adminReply}
+                      </div>
+                    )}
+                  </div>
+                  {!message.answered && (
+                    <div className="mt-4">
+                      <textarea
+                        placeholder="Write a reply..."
+                        value={reply}
+                        onChange={(e) => setReply(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md"
+                      ></textarea>
+                      <Button
+                        onClick={() => handleReply(message._id)}
+                        className="mt-2 bg-green-500 hover:bg-green-600"
+                      >
+                        Send Reply
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+          ;
         </CardContent>
       </Card>
     </div>

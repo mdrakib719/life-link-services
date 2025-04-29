@@ -459,3 +459,51 @@ app.post("/api/contact", async (req, res) => {
     res.status(500).json({ message: "Failed to save message.", error });
   }
 });
+
+app.get("/api/contact-messages", async (req, res) => {
+  try {
+    const messages = await db.collection("contactMessages").find().toArray();
+    res.json(messages);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch messages" });
+  }
+});
+app.put("/api/contact-messages/:id/reply", async (req, res) => {
+  const { id } = req.params;
+  const { reply } = req.body;
+
+  try {
+    const result = await db
+      .collection("contactMessages")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { adminReply: reply, answered: true } }
+      );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ message: "Message not found" });
+    }
+
+    res.status(200).json({ message: "Reply sent successfully" });
+  } catch {
+    res.status(500).json({ message: "Failed to send reply" });
+  }
+});
+
+// 1. Route to fetch messages (GET)
+app.get("/api/messages", async (req, res) => {
+  try {
+    const email = req.query.email; // For example, you can filter messages based on the user's email
+    let messages;
+
+    if (email) {
+      messages = await contactMessagesCollection.find({ email }).toArray();
+    } else {
+      messages = await contactMessagesCollection.find().toArray(); // Fetch all messages for admin
+    }
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching messages", error });
+  }
+});
