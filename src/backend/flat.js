@@ -331,3 +331,131 @@ app.put("/api/update-meal-price/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
+// Routes
+
+// Get all discussions
+app.get("/api/discussions", async (req, res) => {
+  const discussions = await db
+    .collection("discussions")
+    .find({})
+    .sort({ _id: -1 })
+    .toArray();
+  res.json(discussions);
+});
+
+// Post a new discussion
+app.post("/api/discussions", async (req, res) => {
+  const { title, author, category } = req.body;
+  const newDiscussion = {
+    title,
+    author,
+    category,
+    time: new Date().toLocaleString(),
+    replies: [],
+    likes: 0,
+  };
+  await db.collection("discussions").insertOne(newDiscussion);
+  res.json({ message: "Discussion created" });
+});
+
+// Add reply to a discussion
+app.post("/api/discussions/:id/reply", async (req, res) => {
+  const { text, author } = req.body;
+  const reply = {
+    text,
+    author,
+    time: new Date().toLocaleString(),
+  };
+  await db
+    .collection("discussions")
+    .updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $push: { replies: reply } }
+    );
+  res.json({ message: "Reply added" });
+});
+
+// Like a discussion
+app.post("/api/discussions/:id/like", async (req, res) => {
+  await db
+    .collection("discussions")
+    .updateOne({ _id: new ObjectId(req.params.id) }, { $inc: { likes: 1 } });
+  res.json({ message: "Liked" });
+});
+
+// Get support topics
+app.get("/api/support", async (req, res) => {
+  const topics = await db
+    .collection("supportTopics")
+    .find({})
+    .sort({ _id: -1 })
+    .toArray();
+  res.json(topics);
+});
+
+// Add new support topic (optional)
+app.post("/api/support", async (req, res) => {
+  const { title, category } = req.body;
+  await db.collection("supportTopics").insertOne({
+    title,
+    category,
+    answered: true,
+  });
+  res.json({ message: "Support topic created" });
+});
+
+app.post("/api/discussions/:id/like", async (req, res) => {
+  const userId = req.body.userId; // Assume userId comes from frontend (after login)
+
+  const discussion = await db
+    .collection("discussions")
+    .findOne({ _id: new ObjectId(req.params.id) });
+
+  if (discussion.likedBy.includes(userId)) {
+    return res.status(400).json({ message: "Already liked" });
+  }
+
+  await db.collection("discussions").updateOne(
+    { _id: new ObjectId(req.params.id) },
+    {
+      $inc: { likes: 1 },
+      $push: { likedBy: userId },
+    }
+  );
+
+  res.json({ message: "Liked" });
+});
+
+app.get("/api/support/:id", async (req, res) => {
+  const topic = await db
+    .collection("supportTopics")
+    .findOne({ _id: new ObjectId(req.params.id) });
+  if (!topic) return res.status(404).json({ message: "Not found" });
+  res.json(topic);
+});
+
+app.post("/api/contact", async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ message: "All fields required." });
+  }
+
+  const contactMessage = {
+    name,
+    email,
+    subject,
+    message,
+    timestamp: new Date(),
+    answered: false,
+    adminReply: "",
+  };
+
+  try {
+    await db.collection("contactMessages").insertOne(contactMessage);
+    res.status(201).json({ message: "Message sent successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to save message.", error });
+  }
+});
