@@ -24,12 +24,15 @@ interface ContactMessage {
   message: string;
   subject: string;
   date: string;
+  answered?: boolean;
+  adminReply?: string;
+  timestamp?: string;
 }
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [messages, setMessages] = useState<ContactMessage[]>([]); // ✅ Correct messages state here
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [customMeal, setCustomMeal] = useState({
     title: "",
     description: "",
@@ -39,16 +42,25 @@ const Dashboard = () => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       fetchCartItems(parsedUser.email);
-      fetchMessages(parsedUser.email); // ✅ Only once
+      fetchMessages(parsedUser.email);
     } else {
       navigate("/");
     }
   }, [navigate]);
+
+  const fetchCartItems = async (email: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/carts?email=${email}`);
+      const data = await res.json();
+      setCartItems(data);
+    } catch (error) {
+      console.error("Failed to fetch cart items", error);
+    }
+  };
 
   const fetchMessages = async (email: string) => {
     try {
@@ -59,16 +71,6 @@ const Dashboard = () => {
       setMessages(data);
     } catch (error) {
       console.error("Failed to fetch messages", error);
-    }
-  };
-
-  const fetchCartItems = async (email: string) => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/carts?email=${email}`);
-      const data = await res.json();
-      setCartItems(data);
-    } catch (error) {
-      console.error("Failed to fetch cart items", error);
     }
   };
 
@@ -85,10 +87,8 @@ const Dashboard = () => {
           method: "DELETE",
         }
       );
-
       if (res.ok) {
         toast.success("Cart item cancelled successfully!");
-        // Refresh the cart items
         if (user) fetchCartItems(user.email);
       } else {
         const data = await res.json();
@@ -108,9 +108,7 @@ const Dashboard = () => {
     try {
       const res = await fetch("http://localhost:3000/api/add-custom-meal", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: customMeal.title,
           description: customMeal.description,
@@ -123,7 +121,7 @@ const Dashboard = () => {
 
       if (res.ok) {
         toast.success("Custom meal submitted successfully!");
-        setCustomMeal({ title: "", description: "" }); // Clear form
+        setCustomMeal({ title: "", description: "" });
       } else {
         toast.error(data.message || "Failed to submit meal.");
       }
@@ -132,9 +130,7 @@ const Dashboard = () => {
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="flex flex-col items-center py-10 px-4 bg-gray-100 min-h-screen">
@@ -148,7 +144,6 @@ const Dashboard = () => {
           <h2 className="text-center text-2xl font-bold text-gray-700">
             Welcome, {user.name}! 🎉
           </h2>
-
           <div className="space-y-2 text-center text-gray-600">
             <p>
               <strong>Email:</strong> {user.email}
@@ -170,7 +165,7 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          {/* Cart Items */}
+          {/* Cart Items Section */}
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
               Your Cart Items 🛒
@@ -211,7 +206,6 @@ const Dashboard = () => {
                         : "Processing ⏳"}
                     </p>
 
-                    {/* Only show Cancel button if status === process */}
                     {cartItem.status === "process" && (
                       <Button
                         onClick={() => handleCancelCart(cartItem._id)}
@@ -226,11 +220,11 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* Custom Meal Section */}
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
               Create Your Own Meal 🍽️
             </h2>
-
             <div className="space-y-4">
               <input
                 type="text"
@@ -260,24 +254,34 @@ const Dashboard = () => {
           </div>
 
           {/* Messages Section */}
-          {messages.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
-                Your Messages 💬
-              </h2>
+          <div className="mt-10">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+              Your Messages 💬
+            </h2>
+            {messages.length === 0 ? (
+              <p className="text-center text-gray-500">No messages yet.</p>
+            ) : (
               <div className="space-y-4">
                 {messages.map((msg) => (
                   <Card key={msg._id} className="p-4 bg-white border">
                     <h4 className="font-semibold">{msg.subject}</h4>
                     <p className="text-sm text-gray-600">{msg.message}</p>
                     <p className="text-xs text-gray-400 mt-2">
-                      Date: {new Date(msg.date).toLocaleString()}
+                      Date:{" "}
+                      {msg.timestamp
+                        ? new Date(msg.timestamp).toLocaleString()
+                        : "N/A"}
                     </p>
+                    {msg.answered && msg.adminReply && (
+                      <div className="mt-2 p-2 bg-green-50 border-l-4 border-green-400 text-green-700">
+                        <strong>Admin Reply:</strong> {msg.adminReply}
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

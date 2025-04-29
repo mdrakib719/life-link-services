@@ -490,38 +490,38 @@ app.put("/api/contact-messages/:id/reply", async (req, res) => {
   }
 });
 
-// 1. Route to fetch messages (GET)
+// // 1. Route to fetch messages (GET)
+// app.get("/api/messages", async (req, res) => {
+//   try {
+//     const email = req.query.email; // For example, you can filter messages based on the user's email
+//     let messages;
+
+//     if (email) {
+//       messages = await contactMessagesCollection.find({ email }).toArray();
+//     } else {
+//       messages = await contactMessagesCollection.find().toArray(); // Fetch all messages for admin
+//     }
+
+//     res.status(200).json(messages);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error fetching messages", error });
+//   }
+// });
+
 app.get("/api/messages", async (req, res) => {
   try {
-    const email = req.query.email; // For example, you can filter messages based on the user's email
-    let messages;
-
-    if (email) {
-      messages = await contactMessagesCollection.find({ email }).toArray();
-    } else {
-      messages = await contactMessagesCollection.find().toArray(); // Fetch all messages for admin
-    }
-
-    res.status(200).json(messages);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching messages", error });
-  }
-});
-
-app.get("/api/mess", async (req, res) => {
-  try {
     const { email } = req.query;
-    if (!email) return res.status(400).json({ message: "Email is required" });
+    const filter = email ? { email } : {};
 
     const messages = await db
       .collection("contactMessages")
-      .find({ email })
+      .find(filter)
       .sort({ timestamp: -1 })
       .toArray();
 
     res.status(200).json(messages);
   } catch (error) {
-    console.error("Error fetching contact messages:", error);
+    console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
