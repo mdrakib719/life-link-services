@@ -56,7 +56,7 @@ const LoginForm = () => {
           } else {
             window.location.href = "/dashboard";
           }
-        }, 2000);
+        }, 100);
       } else {
         toast.error(data.message || "Invalid email or password");
       }
