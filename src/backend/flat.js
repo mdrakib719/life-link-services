@@ -525,3 +525,41 @@ app.get("/api/messages", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+app.post("/api/pay", async (req, res) => {
+  const { cartId } = req.body;
+
+  try {
+    const cartItem = await Cart.findById(cartId);
+    if (!cartItem) {
+      return res.status(404).json({ message: "Cart item not found." });
+    }
+
+    const user = await User.findById(cartItem.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (user.balance < cartItem.totalPrice) {
+      return res.status(400).json({ message: "Insufficient balance." });
+    }
+
+    // Deduct balance
+    user.balance -= cartItem.totalPrice;
+    await user.save();
+
+    // Log transaction
+    await Transaction.create({
+      userId: user._id,
+      type: "debit",
+      amount: cartItem.totalPrice,
+    });
+
+    // Remove cart item
+    await Cart.findByIdAndDelete(cartId);
+
+    res.json({ message: "Payment successful." });
+  } catch (err) {
+    res.status(500).json({ message: "Payment failed." });
+  }
+});

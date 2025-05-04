@@ -16,6 +16,7 @@ interface CartItem {
   email: string;
   item: any;
   status: string;
+  paid?: boolean; // optional field for payment
 }
 
 interface ContactMessage {
@@ -33,10 +34,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [customMeal, setCustomMeal] = useState({
-    title: "",
-    description: "",
-  });
+  const [customMeal, setCustomMeal] = useState({ title: "", description: "" });
 
   const navigate = useNavigate();
 
@@ -99,6 +97,27 @@ const Dashboard = () => {
     }
   };
 
+  const handlePayNow = async (cartId: string) => {
+    try {
+      const res = await fetch("http://localhost:3000/api/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartId }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Payment successful!");
+        if (user) fetchCartItems(user.email);
+      } else {
+        toast.error(data.message || "Payment failed");
+      }
+    } catch (error) {
+      toast.error("Payment error. Please try again.");
+    }
+  };
+
   const handleCustomMealSubmit = async () => {
     if (!customMeal.title || !customMeal.description) {
       toast.error("Please fill out both Title and Description.");
@@ -144,7 +163,7 @@ const Dashboard = () => {
           <h2 className="text-center text-2xl font-bold text-gray-700">
             Welcome, {user.name}! 🎉
           </h2>
-          <div className="space-y-2 text-center text-gray-600">
+          <div className="text-center text-gray-600">
             <p>
               <strong>Email:</strong> {user.email}
             </p>
@@ -165,9 +184,9 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          {/* Cart Items Section */}
+          {/* Cart Items */}
           <div className="mt-10">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+            <h2 className="text-xl font-semibold text-center mb-4">
               Your Cart Items 🛒
             </h2>
             {cartItems.length === 0 ? (
@@ -179,7 +198,7 @@ const Dashboard = () => {
                 {cartItems.map((cartItem) => (
                   <Card
                     key={cartItem._id}
-                    className="p-4 border bg-white relative"
+                    className="p-4 bg-white border relative"
                   >
                     <h3 className="font-bold">
                       {cartItem.item.title || cartItem.item.name}
@@ -209,10 +228,23 @@ const Dashboard = () => {
                     {cartItem.status === "process" && (
                       <Button
                         onClick={() => handleCancelCart(cartItem._id)}
-                        className="mt-4 bg-red-500 hover:bg-red-600"
+                        className="mt-2 bg-red-500 hover:bg-red-600"
                       >
                         Cancel Item
                       </Button>
+                    )}
+
+                    {cartItem.status === "confirm" && !cartItem.paid && (
+                      <Button
+                        onClick={() => navigate(`/cart/${cartItem._id}`)}
+                        className="mt-2 bg-green-500 hover:bg-green-600"
+                      >
+                        Pay Now 💳
+                      </Button>
+                    )}
+
+                    {cartItem.paid && (
+                      <p className="mt-2 text-green-600 font-medium">Paid ✅</p>
                     )}
                   </Card>
                 ))}
@@ -220,42 +252,40 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Custom Meal Section */}
+          {/* Custom Meal Form */}
           <div className="mt-10">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+            <h2 className="text-xl font-semibold text-center mb-4">
               Create Your Own Meal 🍽️
             </h2>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Meal Title"
-                value={customMeal.title}
-                onChange={(e) =>
-                  setCustomMeal({ ...customMeal, title: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
-              <textarea
-                placeholder="Meal Description"
-                value={customMeal.description}
-                onChange={(e) =>
-                  setCustomMeal({ ...customMeal, description: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-                rows={3}
-              />
-              <Button
-                onClick={handleCustomMealSubmit}
-                className="w-full bg-life-blue-500 hover:bg-life-blue-600"
-              >
-                Submit Meal
-              </Button>
-            </div>
+            <input
+              type="text"
+              placeholder="Meal Title"
+              value={customMeal.title}
+              onChange={(e) =>
+                setCustomMeal({ ...customMeal, title: e.target.value })
+              }
+              className="w-full p-2 border rounded mb-2"
+            />
+            <textarea
+              placeholder="Meal Description"
+              value={customMeal.description}
+              onChange={(e) =>
+                setCustomMeal({ ...customMeal, description: e.target.value })
+              }
+              className="w-full p-2 border rounded mb-2"
+              rows={3}
+            />
+            <Button
+              onClick={handleCustomMealSubmit}
+              className="w-full bg-life-blue-500 hover:bg-life-blue-600"
+            >
+              Submit Meal
+            </Button>
           </div>
 
           {/* Messages Section */}
           <div className="mt-10">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+            <h2 className="text-xl font-semibold text-center mb-4">
               Your Messages 💬
             </h2>
             {messages.length === 0 ? (
