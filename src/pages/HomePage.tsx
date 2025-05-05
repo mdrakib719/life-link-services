@@ -211,7 +211,7 @@ const HomePage = () => {
               <Link to="/services">
                 <Button
                   variant="outline"
-                  className="text-white border-white hover:bg-life-blue-600 btn-hover"
+                  className="text-black border-white hover:bg-life-blue-600 btn-hover"
                 >
                   Explore Services
                 </Button>
