@@ -538,6 +538,45 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
+app.post("/api/reset-password", async (req, res) => {
+  const { name, email, verified, newPassword } = req.body;
+
+  if (!name || !email || !verified || !newPassword) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  try {
+    const user = await userCollection.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (
+      user.name !== name ||
+      String(user.verified).toLowerCase() !== String(verified).toLowerCase()
+    ) {
+      return res.status(400).json({ message: "Verification failed." });
+    }
+
+    // Optionally hash password if you're storing hashed passwords
+    // const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const result = await userCollection.updateOne(
+      { email },
+      { $set: { password: newPassword } }
+    );
+
+    if (result.modifiedCount === 1) {
+      res.status(200).json({ message: "Password reset successfully." });
+    } else {
+      res.status(500).json({ message: "Failed to reset password." });
+    }
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
 // app.post("/api/pay", async (req, res) => {
 //   const { cartId } = req.body;
 //   console.log("Received cartId:", cartId); // <-- Add this

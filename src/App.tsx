@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PaymentForm from "./pages/PaymentForm";
 import OrderForm from "./pages/OrderFrom";
 import CartPage from "./pages/CartPage";
+import ForgotPassword from "./pages/ForgotPassword";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +27,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
+          {/* <Route path="/:id" element={<RentalItemPage />} /> */}
+          {/* <Route path="/:id/edit" element={<RentalItemEditPage />} /> */}
+          {/* <Route path="/:id/delete" element={<RentalItemDeletePage />} /> */}
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
