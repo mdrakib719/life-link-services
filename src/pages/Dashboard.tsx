@@ -16,7 +16,8 @@ interface CartItem {
   email: string;
   item: any;
   status: string;
-  paid?: boolean; // optional field for payment
+  paid?: boolean; // in here by defult it will be false
+  paidAt?: string; // it will by defult be empty
 }
 
 interface ContactMessage {
@@ -236,7 +237,7 @@ const Dashboard = () => {
 
                     {cartItem.status === "confirm" && !cartItem.paid && (
                       <Button
-                        onClick={() => navigate(`/cart/${cartItem._id}`)}
+                        onClick={() => navigate(`/confirm`)}
                         className="mt-2 bg-green-500 hover:bg-green-600"
                       >
                         Pay Now 💳

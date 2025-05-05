@@ -19,6 +19,7 @@ let shopCollection;
 let mealCollection;
 let cartCollection;
 let userCollection;
+let paymentCollection;
 
 client
   .connect()
@@ -29,6 +30,7 @@ client
     mealCollection = db.collection("meal");
     cartCollection = db.collection("cart");
     userCollection = db.collection("user");
+    paymentCollection = db.collection("payments");
 
     console.log("✅ Connected to MongoDB");
   })
@@ -121,6 +123,16 @@ app.post("/api/add-cart", async (req, res) => {
       email,
       item,
       status,
+      paid: false,
+      paidAt: null,
+      createdAt: new Date(),
+    });
+    await paymentCollection.insertOne({
+      email,
+      item,
+      status,
+      paid: false,
+      paidAt: null,
       createdAt: new Date(),
     });
     res.status(201).json({ message: "Added to cart successfully" });
@@ -526,40 +538,126 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
-app.post("/api/pay", async (req, res) => {
-  const { cartId } = req.body;
+// app.post("/api/pay", async (req, res) => {
+//   const { cartId } = req.body;
+//   console.log("Received cartId:", cartId); // <-- Add this
 
+//   try {
+//     const cartItem = await Cart.findById(cartId);
+//     if (!cartItem) {
+//       console.log("Cart item not found"); // <-- Add this
+//       return res.status(404).json({ message: "Cart item not found." });
+//     }
+
+//     const user = await User.findById(cartItem.userId);
+//     if (!user) {
+//       console.log("User not found");
+//       return res.status(404).json({ message: "User not found." });
+//     }
+
+//     if (user.balance < cartItem.totalPrice) {
+//       return res.status(400).json({ message: "Insufficient balance." });
+//     }
+
+//     user.balance -= cartItem.totalPrice;
+//     await user.save();
+
+//     await Transaction.create({
+//       userId: user._id,
+//       type: "debit",
+//       amount: cartItem.totalPrice,
+//     });
+
+//     await Cart.findByIdAndDelete(cartId);
+
+//     res.json({ message: "Payment successful." });
+//   } catch (err) {
+//     console.error("Payment failed:", err); // <-- Log error
+//     res.status(500).json({ message: "Payment failed." });
+//   }
+// });
+// Add a payment
+// app.post("/api/make-payment", async (req, res) => {
+//   const { email, item, amount, method } = req.body;
+//   if (!email || !item || !amount || !method) {
+//     return res.status(400).json({ message: "Missing required fields" });
+//   }
+
+//   try {
+//     await paymentCollection.insertOne({
+//       email,
+//       item,
+//       amount,
+//       method,
+//       status: "paid",
+//       paidAt: new Date(),
+//     });
+//     res.status(201).json({ message: "Payment successful" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Error processing payment", error });
+//   }
+// });
+
+// // Get all payments (optionally filter by email)
+// app.get("/api/payments", async (req, res) => {
+//   const { email } = req.query;
+
+//   try {
+//     const query = email ? { email } : {};
+//     const payments = await paymentCollection.find(query).toArray();
+//     res.status(200).json(payments);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error fetching payments", error });
+//   }
+// });
+
+// app.get("/payment-details/:id", async (req, res) => {
+//   try {
+//     const paymentId = req.params.id;
+
+//     // Query the database for the payment details with 'paid: false'
+//     const payment = await Payment.findOne({ _id: paymentId, paid: false })
+//       .populate("item")
+//       .exec();
+
+//     if (!payment) {
+//       return res.status(404).send("Payment not found or already paid");
+//     }
+
+//     res.json({
+//       user: {
+//         email: payment.email,
+//         item: payment.item,
+//         paid: payment.paid,
+//         status: payment.status,
+//         price: payment.item.pricePerMonth,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).send("Server error");
+//   }
+// });
+
+// Get payment item
+// Get payment by id
+
+// Get all carts
+app.get("/api/paymentinfo/:email", async (req, res) => {
   try {
-    const cartItem = await Cart.findById(cartId);
-    if (!cartItem) {
-      return res.status(404).json({ message: "Cart item not found." });
+    const { email } = req.params;
+
+    // Find payment by email
+    const paymentInfo = await paymentCollection.findOne({ email });
+
+    if (!paymentInfo) {
+      return res
+        .status(404)
+        .json({ message: "No payment record found for this email" });
     }
 
-    const user = await User.findById(cartItem.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    if (user.balance < cartItem.totalPrice) {
-      return res.status(400).json({ message: "Insufficient balance." });
-    }
-
-    // Deduct balance
-    user.balance -= cartItem.totalPrice;
-    await user.save();
-
-    // Log transaction
-    await Transaction.create({
-      userId: user._id,
-      type: "debit",
-      amount: cartItem.totalPrice,
-    });
-
-    // Remove cart item
-    await Cart.findByIdAndDelete(cartId);
-
-    res.json({ message: "Payment successful." });
-  } catch (err) {
-    res.status(500).json({ message: "Payment failed." });
+    return res.status(200).json(paymentInfo);
+  } catch (error) {
+    console.error("Error fetching payment info:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 });
