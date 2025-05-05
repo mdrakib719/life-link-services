@@ -1,94 +1,94 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-interface Item {
+interface RentalItem {
   _id: string;
   title: string;
   location: string;
-  distanceFromCampus: string;
   pricePerMonth: string;
   status: string;
-  paid: boolean;
-  paidAt: Date | null;
-  createdAt: Date;
-}
-
-interface PaymentInfo {
-  email: string;
-  item: Item;
+  createdAt: string;
 }
 
 const PaymentForm: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [items, setItems] = useState<RentalItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const fetchPaymentInfo = async () => {
+  const handleFetch = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await axios.get(`/api/payment-info/${email}`);
+      const response = await axios.post("http://localhost:3000/api/payment", {
+        email,
+      });
+      const { status, unpaidItems } = response.data;
 
-      // Check if the response has valid data
-      if (res.data) {
-        setPaymentInfo(res.data);
-        setErrorMessage(""); // Clear error message if data is fetched
+      if (status === "success") {
+        if (unpaidItems.length > 0) {
+          const itemsOnly = unpaidItems.map((doc: any) => doc.item); // extract `item` from each document
+          setItems(itemsOnly);
+        } else {
+          setItems([]);
+          alert("No unpaid items.");
+        }
       } else {
-        setErrorMessage("No payment record found for this email.");
-        setPaymentInfo(null); // Reset payment info if no data found
+        setError("Payment check failed: " + response.data.message);
       }
     } catch (error) {
-      console.error("Error fetching payment info:", error);
-      setErrorMessage("An error occurred while fetching the data.");
-      setPaymentInfo(null);
+      console.error("Error:", error);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Enter Email to Get Payment Info</h2>
+    <div className="p-6 max-w-xl mx-auto bg-white shadow rounded">
+      <h2 className="text-xl font-bold mb-4">Check Unpaid Items</h2>
       <input
         type="email"
-        placeholder="Enter email"
+        placeholder="Enter your email"
+        className="border p-2 rounded w-full mb-4"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <button onClick={fetchPaymentInfo}>Fetch Info</button>
+      <button
+        onClick={handleFetch}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Check
+      </button>
 
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+      {loading && <p className="mt-4">Loading unpaid items...</p>}
+      {error && <p className="mt-4 text-red-500">{error}</p>}
 
-      {paymentInfo && (
-        <div>
-          <h3>Payment Details</h3>
-          <p>
-            <strong>Email:</strong> {paymentInfo.email}
-          </p>
-          <p>
-            <strong>Item Title:</strong> {paymentInfo.item.title}
-          </p>
-          <p>
-            <strong>Location:</strong> {paymentInfo.item.location}
-          </p>
-          <p>
-            <strong>Distance from Campus:</strong>{" "}
-            {paymentInfo.item.distanceFromCampus}
-          </p>
-          <p>
-            <strong>Price per Month:</strong> {paymentInfo.item.pricePerMonth}
-          </p>
-          <p>
-            <strong>Status:</strong> {paymentInfo.item.status}
-          </p>
-          <p>
-            <strong>Paid:</strong> {paymentInfo.item.paid ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>Paid At:</strong>{" "}
-            {paymentInfo.item.paidAt
-              ? paymentInfo.item.paidAt.toString()
-              : "Not paid yet"}
-          </p>
-          <p>
-            <strong>Created At:</strong> {paymentInfo.item.createdAt.toString()}
-          </p>
+      {items.length > 0 && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-lg font-semibold mb-2">Receipt Summary:</h3>
+          <ul className="space-y-3">
+            {items.map((item) => (
+              <li key={item._id} className="border p-3 rounded">
+                <p>
+                  <strong>Title:</strong> {item.title}
+                </p>
+                <p>
+                  <strong>Location:</strong> {item.location}
+                </p>
+                <p>
+                  <strong>Price:</strong> {item.pricePerMonth}
+                </p>
+                <p>
+                  <strong>Status:</strong> {item.status}
+                </p>
+                <p>
+                  <strong>Requested At:</strong>{" "}
+                  {new Date(item.createdAt).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

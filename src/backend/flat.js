@@ -642,22 +642,23 @@ app.get("/api/messages", async (req, res) => {
 // Get payment by id
 
 // Get all carts
-app.get("/api/paymentinfo/:email", async (req, res) => {
+app.post("/api/payment", async (req, res) => {
+  const { email } = req.body;
+
   try {
-    const { email } = req.params;
+    const query = { email: email, "item.paid": false }; // change this if "paid" is not inside item
+    const unpaidItems = await paymentCollection.find(query).toArray();
 
-    // Find payment by email
-    const paymentInfo = await paymentCollection.findOne({ email });
+    console.log("Query:", query);
+    console.log("Unpaid Items Found:", unpaidItems);
 
-    if (!paymentInfo) {
-      return res
-        .status(404)
-        .json({ message: "No payment record found for this email" });
+    if (unpaidItems.length >= -1) {
+      res.json({ status: "success", unpaidItems });
+    } else {
+      res.json({ status: "success", unpaidItems: [] });
     }
-
-    return res.status(200).json(paymentInfo);
   } catch (error) {
-    console.error("Error fetching payment info:", error);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error fetching unpaid items:", error);
+    res.status(500).json({ status: "error", message: "Server error" });
   }
 });
