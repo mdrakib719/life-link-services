@@ -95,6 +95,15 @@ const AdminDashboard = () => {
 
   const handleFlatSubmit = async () => {
     try {
+      if (
+        !newFlat.title ||
+        !newFlat.location ||
+        !newFlat.distanceFromCampus ||
+        !newFlat.pricePerMonth
+      ) {
+        toast.error("Please fill in all fields");
+        return;
+      }
       const res = await fetch("http://localhost:3000/api/add-flat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,6 +126,10 @@ const AdminDashboard = () => {
 
   const handleShopSubmit = async () => {
     try {
+      if (!newShop.title || !newShop.location) {
+        toast.error("Please fill in all fields");
+        return;
+      }
       const res = await fetch("http://localhost:3000/api/add-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,6 +147,10 @@ const AdminDashboard = () => {
 
   const handleMealSubmit = async () => {
     try {
+      if (!newMeal.title || !newMeal.description) {
+        toast.error("Please fill in all fields");
+        return;
+      }
       const res = await fetch("http://localhost:3000/api/add-meal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
