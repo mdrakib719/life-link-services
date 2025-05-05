@@ -263,17 +263,24 @@ const ServicesPage = () => {
                           <span className="text-sm">{shop.location}</span>
                         </div>
                         <div className="text-sm text-gray-500">
-                          {shop.distance}
+                          Distance: {shop.distance}
                         </div>
                         <div className="text-sm text-gray-500">
                           Rating: {shop.rating}
                         </div>
-                        <Button
+                        <iframe
+                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11705.943215253761!2d90.42216452259211!3d23.768155839161903!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7715a40c603%3A0xec01cd75f33139f5!2z4Kas4KeN4Kaw4KeN4Kav4Ka-4KaVIOCmrOCmv-CmtuCnjeCmrOCmrOCmv-CmpuCnjeCmr-CmvuCmsuCmr-CmvA!5e0!3m2!1sbn!2sbd!4v1746454386120!5m2!1sbn!2sbd"
+                          style={{ border: 0, width: "100%", height: "250px" }}
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                        {/* <Button
                           className="w-full bg-lime-500 hover:bg-lime-600"
                           onClick={() => handleAddToCart(shop)}
                         >
                           Add to Cart
-                        </Button>
+                        </Button> */}
                       </CardContent>
                     </Card>
                   ))
