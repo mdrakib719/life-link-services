@@ -163,8 +163,16 @@ app.post("/api/add-cart", async (req, res) => {
 
 // Get all carts
 app.get("/api/carts", async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res
+      .status(400)
+      .json({ message: "Email query parameter is required" });
+  }
+
   try {
-    const carts = await cartCollection.find({}).toArray();
+    const carts = await cartCollection.find({ email: email }).toArray();
     res.status(200).json(carts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching carts", error });

@@ -99,26 +99,26 @@ const Dashboard = () => {
     }
   };
 
-  const handlePayNow = async (cartId: string) => {
-    try {
-      const res = await fetch("http://localhost:3000/api/pay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cartId }),
-      });
+  // const handlePayNow = async (cartId: string) => {
+  //   try {
+  //     const res = await fetch("http://localhost:3000/api/pay", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ cartId }),
+  //     });
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      if (res.ok) {
-        toast.success("Payment successful!");
-        if (user) fetchCartItems(user.email);
-      } else {
-        toast.error(data.message || "Payment failed");
-      }
-    } catch (error) {
-      toast.error("Payment error. Please try again.");
-    }
-  };
+  //     if (res.ok) {
+  //       toast.success("Payment successful!");
+  //       if (user) fetchCartItems(user.email);
+  //     } else {
+  //       toast.error(data.message || "Payment failed");
+  //     }
+  //   } catch (error) {
+  //     toast.error("Payment error. Please try again.");
+  //   }
+  // };
 
   const handleCustomMealSubmit = async () => {
     if (!customMeal.title || !customMeal.description) {
