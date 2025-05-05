@@ -30,9 +30,7 @@ const Navigation = () => {
               <span className="text-xl font-bold text-life-blue-500">
                 LocalConnect
               </span>
-              <span className="text-life-green-500 font-medium ml-1">
-                Services
-              </span>
+              <span className="text-life-green-500 font-medium ml-1"></span>
             </Link>
           </div>
 

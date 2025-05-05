@@ -20,6 +20,7 @@ let mealCollection;
 let cartCollection;
 let userCollection;
 let paymentCollection;
+let homeCollection;
 
 client
   .connect()
@@ -31,6 +32,7 @@ client
     cartCollection = db.collection("cart");
     userCollection = db.collection("user");
     paymentCollection = db.collection("payments");
+    homeCollection = db.collection("home");
 
     console.log("✅ Connected to MongoDB");
   })
@@ -72,6 +74,24 @@ app.get("/api/food", async (req, res) => {
   }
 });
 
+app.get("/api/home", async (req, res) => {
+  try {
+    const home = await homeCollection.find({}).toArray();
+    res.json(home);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching home", error });
+  }
+});
+
+app.delete("/api/delete-user/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await userCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "user deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user", error });
+  }
+});
 // ------------------------------------------------
 // ➕ Add Flat, Shop, Meal
 // ------------------------------------------------

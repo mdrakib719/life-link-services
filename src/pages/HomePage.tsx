@@ -24,9 +24,9 @@ const HomePage = () => {
               <span className="text-life-blue-500">Simplified</span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              LifeLink connects students with essential services - from finding
-              the perfect flat to ordering meals and accessing local shops, all
-              in one place.
+              LocalConnect connects students with essential services - from
+              finding the perfect flat to ordering meals and accessing local
+              shops, all in one place.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/services">

@@ -81,7 +81,7 @@ const ForgotPassword = () => {
           </div>
 
           <div>
-            <Label htmlFor="verified">Verified (yes/no)</Label>
+            <Label htmlFor="verified">Verified (true/false)</Label>
             <Input
               id="verified"
               name="verified"

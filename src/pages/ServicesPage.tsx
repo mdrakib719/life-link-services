@@ -11,6 +11,7 @@ import {
   MapPin,
   Star,
   Search,
+  Home,
 } from "lucide-react";
 
 const ServicesPage = () => {
@@ -18,6 +19,7 @@ const ServicesPage = () => {
   const [shops, setShops] = useState([]);
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [home, setHome] = useState([]);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -40,6 +42,10 @@ const ServicesPage = () => {
         const mealsData = await mealsResponse.json();
         setMeals(mealsData);
 
+        const homeResponse = await fetch("http://localhost:3000/api/home");
+        const homeData = await homeResponse.json();
+        setHome(homeData);
+
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -47,7 +53,7 @@ const ServicesPage = () => {
       }
     };
 
-    fetchData();
+    fetchData(); // <- Call it here
   }, []);
 
   const handleAddToCart = (item: any) => {
@@ -119,7 +125,7 @@ const ServicesPage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="flats" className="w-full">
-          <TabsList className="grid grid-cols-3 max-w-xl mx-auto mb-8">
+          <TabsList className="grid grid-cols-4 max-w-xl mx-auto mb-8">
             <TabsTrigger value="flats" className="flex gap-2 items-center">
               <HomeIcon size={18} />
               <span>Flats</span>
@@ -127,6 +133,10 @@ const ServicesPage = () => {
             <TabsTrigger value="meals" className="flex gap-2 items-center">
               <Utensils size={18} />
               <span>Meals</span>
+            </TabsTrigger>
+            <TabsTrigger value="home" className="flex gap-2 items-center">
+              <Utensils size={18} />
+              <span>Home Service</span>
             </TabsTrigger>
             <TabsTrigger value="shops" className="flex gap-2 items-center">
               <ShoppingBag size={18} />
@@ -176,6 +186,7 @@ const ServicesPage = () => {
                             className="text-yellow-500 mr-1 fill-yellow-500"
                           />
                         </div>
+
                         <Button
                           className="w-full bg-lime-500 hover:bg-lime-600"
                           onClick={() => handleAddToCart(flat)}
@@ -226,6 +237,52 @@ const ServicesPage = () => {
                         <Button
                           className="w-full bg-lime-500 hover:bg-lime-600"
                           onClick={() => handleAddToCart(meal)}
+                        >
+                          Add to Cart
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
+            </div>
+          </TabsContent>
+          {/* Home Service */}
+          <TabsContent value="home" className="animate-fade-in">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {loading ? (
+                <p>Loading home services...</p>
+              ) : error ? (
+                <p>Error: {error}</p>
+              ) : (
+                home
+                  .filter(
+                    (home) =>
+                      home.title
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                      home.description
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase())
+                  )
+                  .map((home) => (
+                    <Card key={home._id} className="overflow-hidden card-hover">
+                      <CardContent className="p-6 space-y-3">
+                        <h3 className="text-xl font-semibold">{home.title}</h3>
+                        <div className="text-sm text-gray-500">
+                          {home.description}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-life-blue-500 font-semibold">
+                            {home.price}
+                          </span>
+                          <Star
+                            size={16}
+                            className="text-yellow-500 mr-1 fill-yellow-500"
+                          />
+                        </div>
+                        <Button
+                          className="w-full bg-lime-500 hover:bg-lime-600"
+                          onClick={() => handleAddToCart(home)}
                         >
                           Add to Cart
                         </Button>

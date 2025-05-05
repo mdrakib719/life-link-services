@@ -209,6 +209,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const deleteuser = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/delete-user/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("user deleted");
+        fetchFlats();
+      }
+    } catch {
+      toast.error("Failed to delete user");
+    }
+  };
+
   const deleteShop = async (id: string) => {
     try {
       const res = await fetch(`http://localhost:3000/api/delete-shop/${id}`, {
@@ -348,6 +362,13 @@ const AdminDashboard = () => {
                       Cancel Verify
                     </Button>
                   )}
+
+                  <Button
+                    onClick={() => deleteuser(user._id)}
+                    className="bg-red-500"
+                  >
+                    Delete
+                  </Button>
 
                   {/* User Cart Orders */}
                   <div className="mt-4 space-y-2">

@@ -10,14 +10,12 @@ const Footer = () => {
           <div>
             <Link to="/" className="flex items-center">
               <div className="bg-life-blue-500 text-white p-1 rounded-md mr-2">
-                <span className="font-bold">LL</span>
+                <span className="font-bold">LC</span>
               </div>
               <span className="text-lg font-bold text-life-blue-500">
-                LifeLink
+                LocalConnect
               </span>
-              <span className="text-life-green-500 font-medium ml-1">
-                Services
-              </span>
+              <span className="text-life-green-500 font-medium ml-1"></span>
             </Link>
             <p className="mt-2 text-sm text-gray-500">
               Connecting students with essential services - flats, meals, and
@@ -116,7 +114,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-6">
           <p className="text-sm text-center text-gray-500">
-            &copy; {currentYear} LifeLink Services. All rights reserved.
+            &copy; {currentYear} LocalConnect Services. All rights reserved.
           </p>
         </div>
       </div>
