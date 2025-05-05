@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input"; // Adjust the path based on your project structure
 import { toast } from "sonner";
 
 interface User {
@@ -152,6 +153,22 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+
+    const name = (document.getElementById("name") as HTMLInputElement).value;
+    const email = (document.getElementById("email") as HTMLInputElement).value;
+    const subject = (document.getElementById("subject") as HTMLInputElement)
+      .value;
+    const message = (document.getElementById("message") as HTMLInputElement)
+      .value;
+
+    const res = await fetch("http://localhost:3000/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, subject, message }),
+    });
+  };
   return (
     <div className="flex flex-col items-center py-10 px-4 bg-gray-100 min-h-screen">
       <Card className="w-full max-w-2xl mx-auto p-8">
@@ -313,6 +330,68 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+          <Card>
+            <CardContent className="p-6">
+              <form className="space-y-4" onSubmit={handleSendMessage}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Name
+                    </label>
+                    <Input id="name" placeholder="Enter your name" />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Email
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Subject
+                  </label>
+                  <Input id="subject" placeholder="Subject of your message" />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    rows={4}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-life-blue-500 focus:border-life-blue-500"
+                    placeholder="Enter your message"
+                  ></textarea>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full md:w-auto bg-life-blue-500 hover:bg-life-blue-600"
+                >
+                  Send Message
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>
