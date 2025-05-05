@@ -9,6 +9,7 @@ const AdminDashboard = () => {
   const [flats, setFlats] = useState([]);
   const [shops, setShops] = useState([]);
   const [meals, setMeals] = useState([]);
+  const [homes, setHomes] = useState([]);
   const [carts, setCarts] = useState([]);
   const [contactMessages, setContactMessages] = useState([]);
   const [reply, setReply] = useState("");
@@ -32,6 +33,12 @@ const AdminDashboard = () => {
     price: "",
     rating: "",
   });
+  const [newHome, setNewHome] = useState({
+    title: "",
+    description: "",
+    price: "",
+    rating: "",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +50,7 @@ const AdminDashboard = () => {
     fetchUsers();
     fetchFlats();
     fetchShops();
+    fetchHomes();
     fetchMeals();
     fetchCarts();
     fetchContactMessages(); // <-- Add this line
@@ -289,6 +297,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchHomes = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/home");
+      setHomes(await res.json());
+    } catch {
+      toast.error("Failed to fetch homes");
+    }
+  };
+
   const fetchContactMessages = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/contact-messages");
@@ -392,15 +409,6 @@ const AdminDashboard = () => {
                                 <strong>Status:</strong> {cartItem.status}
                               </p>
                             </div>
-                            {cartItem.status === "process" && (
-                              <Button
-                                size="sm"
-                                className="bg-blue-500 hover:bg-blue-600"
-                                onClick={() => approveCart(cartItem._id)}
-                              >
-                                Approve
-                              </Button>
-                            )}
                           </div>
                         ))
                     )}

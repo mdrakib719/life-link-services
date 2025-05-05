@@ -63,7 +63,14 @@ app.get("/api/shopi", async (req, res) => {
     res.status(500).json({ message: "Error fetching shops", error });
   }
 });
-
+app.get("/api/home", async (req, res) => {
+  try {
+    const homes = await homeCollection.find({}).toArray();
+    res.json(homes);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching homes", error });
+  }
+});
 // Fetch Meals
 app.get("/api/food", async (req, res) => {
   try {
