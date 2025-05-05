@@ -409,6 +409,12 @@ const AdminDashboard = () => {
                                 <strong>Status:</strong> {cartItem.status}
                               </p>
                             </div>
+                            <button
+                              className="text-sm text-green-600"
+                              onClick={() => approveCart(cartItem._id)} // Add onClick here
+                            >
+                              Approve
+                            </button>
                           </div>
                         ))
                     )}
