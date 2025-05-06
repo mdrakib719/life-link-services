@@ -6,6 +6,7 @@ interface ItemDetails {
   price: string;
   pricePerMonth?: string; // Added optional property
   category: string;
+  distanceFromCampus?: string; // Added optional property
 }
 
 interface RentalRecord {
@@ -96,15 +97,18 @@ const PaymentForm: React.FC = () => {
                   </p>
                   <p>
                     <strong>Description:</strong> {entry.item?.description}
+                    {entry.item?.distanceFromCampus}
                   </p>
                   <p>
                     <strong>Price:</strong> {entry.item?.price}
+                    {entry.item?.pricePerMonth}
                   </p>
-                  <p>
+                  {/* <p>
                     <strong>Price for Flat:</strong> {entry.item?.pricePerMonth}
-                  </p>
+                  </p> */}
                   <p>
                     <strong>Category:</strong> {entry.item?.category}
+                    {"N/A"}
                   </p>
                   <p>
                     <strong>Status:</strong> {entry.status}

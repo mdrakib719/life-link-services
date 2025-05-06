@@ -144,6 +144,28 @@ const AdminDashboard = () => {
       toast.error("Network error");
     }
   };
+  const deleteCart = async (cartId: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/delete-carti/${cartId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Cart deleted");
+        await fetchFlats(); // ensure it's awaited if it's an async function
+      } else {
+        toast.error(data.message || "Failed to delete cart");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the cart");
+      console.error("Delete error:", error);
+    }
+  };
 
   const handleFlatSubmit = async () => {
     try {
@@ -461,6 +483,12 @@ const AdminDashboard = () => {
                                   {/* Accessing title inside item */}
                                 </p>
                                 <p>
+                                  <strong>price:</strong>{" "}
+                                  {cartItem.item.pricePerMonth}{" "}
+                                  {cartItem.item.price}{" "}
+                                  {/* Accessing title inside item */}
+                                </p>
+                                <p>
                                   <strong>Status:</strong>{" "}
                                   {cartItem.status || "No Status"}{" "}
                                   {/* Fallback for missing status */}
@@ -471,6 +499,12 @@ const AdminDashboard = () => {
                                 onClick={() => approveCart(cartItem._id)}
                               >
                                 Approve
+                              </button>
+                              <button
+                                className="text-sm text-green-600"
+                                onClick={() => deleteCart(cartItem._id)}
+                              >
+                                Delete
                               </button>
                             </div>
                           );

@@ -756,12 +756,30 @@ app.get("/api/pay", async (req, res) => {
   }
 
   try {
-    const unpaidItems = await paymentCollection
+    const unpaidItems = await cartCollection
       .find({ email, paid: false, status: "confirm" })
       .toArray();
     res.json(unpaidItems);
   } catch (err) {
     console.error("Error fetching unpaid items:", err);
     res.status(500).json({ message: "Failed to fetch unpaid items" });
+  }
+});
+
+app.delete("/api/delete-carti/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "Cart not found or already deleted" });
+    }
+
+    res.status(200).json({ message: "Cart deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting cart", error });
   }
 });
