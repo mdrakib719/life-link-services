@@ -44,17 +44,26 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (!storedUser) return navigate("/");
+    if (!storedUser) {
+      navigate("/");
+      return;
+    }
+
     const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "admin") navigate("/");
+    console.log("Parsed user:", parsedUser);
+
+    if (parsedUser.role !== "admin") {
+      navigate("/");
+      return;
+    }
 
     fetchUsers();
     fetchFlats();
     fetchShops();
     fetchHomes();
     fetchMeals();
-    fetchCarts();
-    fetchContactMessages(); // <-- Add this line
+    fetchContactMessages();
+    fetchCarts(); // ✅ fetch all carts, not just for the admin
   }, [navigate]);
 
   const fetchUsers = async () => {
@@ -102,10 +111,37 @@ const AdminDashboard = () => {
 
   const fetchCarts = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/carti");
-      setCarts(await res.json());
+      const res = await fetch("http://localhost:3000/api/carts");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Failed to fetch carts");
+
+      setCarts(data); // or whatever state you're using
+    } catch (error) {
+      console.error("Failed to fetch carts:", error.message);
+    }
+  };
+
+  const approveCart = async (cartId: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/approve-cart/${cartId}`,
+        { method: "PUT" }
+      );
+      if (res.ok) {
+        toast.success("Cart Approved");
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser.email) {
+            fetchCarts(); // Refresh cart after approval
+          }
+        }
+      } else {
+        toast.error("Failed to approve cart");
+      }
     } catch {
-      toast.error("Failed to fetch carts");
+      toast.error("Network error");
     }
   };
 
@@ -322,23 +358,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const approveCart = async (cartId: string) => {
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/approve-cart/${cartId}`,
-        { method: "PUT" }
-      );
-      if (res.ok) {
-        toast.success("Cart Approved");
-        fetchCarts();
-      } else {
-        toast.error("Failed to approve cart");
-      }
-    } catch {
-      toast.error("Network error");
-    }
-  };
-
   const fetchContactMessages = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/contact-messages");
@@ -429,27 +448,33 @@ const AdminDashboard = () => {
                     ) : (
                       carts
                         .filter((cart) => cart.email === user.email)
-                        .map((cartItem) => (
-                          <div
-                            key={cartItem._id}
-                            className="p-2 border rounded flex justify-between items-center"
-                          >
-                            <div>
-                              <p>
-                                <strong>Title:</strong> {cartItem.title}
-                              </p>
-                              <p>
-                                <strong>Status:</strong> {cartItem.status}
-                              </p>
-                            </div>
-                            <button
-                              className="text-sm text-green-600"
-                              onClick={() => approveCart(cartItem._id)} // Add onClick here
+                        .map((cartItem) => {
+                          console.log(cartItem); // Log cartItem to check the structure
+                          return (
+                            <div
+                              key={cartItem._id}
+                              className="p-2 border rounded flex justify-between items-center"
                             >
-                              Approve
-                            </button>
-                          </div>
-                        ))
+                              <div>
+                                <p>
+                                  <strong>Title:</strong> {cartItem.item.title}{" "}
+                                  {/* Accessing title inside item */}
+                                </p>
+                                <p>
+                                  <strong>Status:</strong>{" "}
+                                  {cartItem.status || "No Status"}{" "}
+                                  {/* Fallback for missing status */}
+                                </p>
+                              </div>
+                              <button
+                                className="text-sm text-green-600"
+                                onClick={() => approveCart(cartItem._id)}
+                              >
+                                Approve
+                              </button>
+                            </div>
+                          );
+                        })
                     )}
                   </div>
                 </div>

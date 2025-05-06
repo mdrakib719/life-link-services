@@ -188,26 +188,30 @@ app.post("/api/add-cart", async (req, res) => {
 });
 
 // Get all carts
+// Example in Node.js (Express) using MongoDB
+// Example Express route to fetch carts by email
 app.get("/api/carts", async (req, res) => {
   const { email } = req.query;
 
-  if (!email) {
-    return res
-      .status(400)
-      .json({ message: "Email query parameter is required" });
-  }
-
   try {
-    const carts = await cartCollection.find({ email: email }).toArray();
-    res.status(200).json(carts);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching carts", error });
+    let carts;
+    if (email) {
+      carts = await cartCollection.find({ email }).toArray(); // ✅ fix here
+    } else {
+      carts = await cartCollection.find().toArray(); // ✅ fix here
+    }
+
+    return res.json(carts); // ✅ Now this is a plain JS array — no circular refs
+  } catch (err) {
+    console.error("Error fetching carts:", err);
+    return res.status(500).json({ message: "Failed to fetch carts" });
   }
 });
 
 // Approve cart
 app.put("/api/approve-cart/:id", async (req, res) => {
   const { id } = req.params;
+
   try {
     const result = await cartCollection.updateOne(
       { _id: new ObjectId(id), status: "process" },
