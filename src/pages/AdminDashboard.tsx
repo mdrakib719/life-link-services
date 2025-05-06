@@ -73,7 +73,14 @@ const AdminDashboard = () => {
       toast.error("Failed to fetch flats");
     }
   };
-
+  const fetchHomes = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/home");
+      setHomes(await res.json());
+    } catch {
+      toast.error("Failed to fetch homes");
+    }
+  };
   const fetchShops = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/shopi");
@@ -94,7 +101,7 @@ const AdminDashboard = () => {
 
   const fetchCarts = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/carts");
+      const res = await fetch("http://localhost:3000/api/carti");
       setCarts(await res.json());
     } catch {
       toast.error("Failed to fetch carts");
@@ -294,15 +301,6 @@ const AdminDashboard = () => {
       }
     } catch {
       toast.error("Network error");
-    }
-  };
-
-  const fetchHomes = async () => {
-    try {
-      const res = await fetch("http://localhost:3000/api/home");
-      setHomes(await res.json());
-    } catch {
-      toast.error("Failed to fetch homes");
     }
   };
 
