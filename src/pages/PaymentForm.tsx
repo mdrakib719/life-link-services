@@ -1,49 +1,69 @@
 import React, { useState } from "react";
-import axios from "axios";
 
-interface RentalItem {
-  _id: string;
+interface ItemDetails {
   title: string;
-  location: string;
-  pricePerMonth: string;
+  description: string;
+  price: string;
+  pricePerMonth?: string; // Added optional property
+  category: string;
+}
+
+interface RentalRecord {
+  _id: string;
+  email: string;
+  item: ItemDetails;
   status: string;
+  paid: boolean;
   createdAt: string;
 }
 
 const PaymentForm: React.FC = () => {
   const [email, setEmail] = useState("");
-  const [items, setItems] = useState<RentalItem[]>([]);
+  const [items, setItems] = useState<RentalRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleFetch = async () => {
-    setLoading(true);
-    setError("");
     try {
-      const response = await axios.post("http://localhost:3000/api/payment", {
-        email,
-      });
-      const { status, unpaidItems } = response.data;
+      setLoading(true);
+      const res = await fetch(`http://localhost:3000/api/pay?email=${email}`);
+      const data = await res.json();
 
-      if (status === "success") {
-        if (unpaidItems.length > 0) {
-          const itemsOnly = unpaidItems.map((doc: any) => doc.item); // extract `item` from each document
-          setItems(itemsOnly);
-        } else {
-          setItems([]);
-          alert("No unpaid items.");
-        }
-      } else {
-        setError("Payment check failed: " + response.data.message);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setError("Something went wrong. Please try again.");
+      if (!res.ok) throw new Error(data.message || "Failed to fetch carts");
+
+      setItems(data); // ✅ Correctly store rental records
+      setError("");
+    } catch (error: any) {
+      console.error("Failed to fetch carts:", error.message);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
+  const getNumericPrice = (price: string | number): number => {
+    if (typeof price === "string") {
+      const parsed = parseFloat(price.replace(/[^\d.]/g, ""));
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    if (typeof price === "number") {
+      return price;
+    }
+    return 0;
+  };
 
+  const calculateTotal = () => {
+    let total = 0;
+    items.forEach((entry) => {
+      const priceValue = entry.item.price || entry.item.pricePerMonth || 0;
+      const numericPrice = getNumericPrice(priceValue);
+      if (!entry.paid) total += numericPrice;
+    });
+    return `৳${total.toFixed(2)}`;
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
   return (
     <div className="p-6 max-w-xl mx-auto bg-white shadow rounded">
       <h2 className="text-xl font-bold mb-4">Check Unpaid Items</h2>
@@ -65,30 +85,55 @@ const PaymentForm: React.FC = () => {
       {error && <p className="mt-4 text-red-500">{error}</p>}
 
       {items.length > 0 && (
-        <div className="mt-6 border-t pt-4">
-          <h3 className="text-lg font-semibold mb-2">Receipt Summary:</h3>
-          <ul className="space-y-3">
-            {items.map((item) => (
-              <li key={item._id} className="border p-3 rounded">
-                <p>
-                  <strong>Title:</strong> {item.title}
-                </p>
-                <p>
-                  <strong>Location:</strong> {item.location}
-                </p>
-                <p>
-                  <strong>Price:</strong> {item.pricePerMonth}
-                </p>
-                <p>
-                  <strong>Status:</strong> {item.status}
-                </p>
-                <p>
-                  <strong>Requested At:</strong>{" "}
-                  {new Date(item.createdAt).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
+        <div>
+          <div className="mt-6 border-t pt-4">
+            <h3 className="text-lg font-semibold mb-2">Receipt Summary:</h3>
+            <ul className="space-y-3">
+              {items.map((entry) => (
+                <li key={entry._id} className="border p-3 rounded">
+                  <p>
+                    <strong>Title:</strong> {entry.item?.title}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {entry.item?.description}
+                  </p>
+                  <p>
+                    <strong>Price:</strong> {entry.item?.price}
+                  </p>
+                  <p>
+                    <strong>Price for Flat:</strong> {entry.item?.pricePerMonth}
+                  </p>
+                  <p>
+                    <strong>Category:</strong> {entry.item?.category}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> {entry.status}
+                  </p>
+                  <p>
+                    <strong>Paid:</strong> {entry.paid ? "Yes" : "No"}
+                  </p>
+                  <p>
+                    <strong>Requested At:</strong>{" "}
+                    {new Date(entry.createdAt).toLocaleString()}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="text-right mb-4">
+            <p className="text-lg font-bold">Total Due: {calculateTotal()}</p>
+          </div>
+          <div className="flex justify-between print:hidden">
+            <button className="bg-green-600 text-white px-4 py-2 rounded">
+              Pay Now
+            </button>
+            <button
+              onClick={handlePrint}
+              className="bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Print Receipt
+            </button>
+          </div>
         </div>
       )}
     </div>

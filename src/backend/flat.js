@@ -748,23 +748,20 @@ app.post("/api/reset-password", async (req, res) => {
 // Get payment by id
 
 // Get all carts
-app.post("/api/payment", async (req, res) => {
-  const { email } = req.body;
+app.get("/api/pay", async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
 
   try {
-    const query = { email: email, "item.paid": false }; // change this if "paid" is not inside item
-    const unpaidItems = await paymentCollection.find(query).toArray();
-
-    console.log("Query:", query);
-    console.log("Unpaid Items Found:", unpaidItems);
-
-    if (unpaidItems.length >= -1) {
-      res.json({ status: "success", unpaidItems });
-    } else {
-      res.json({ status: "success", unpaidItems: [] });
-    }
-  } catch (error) {
-    console.error("Error fetching unpaid items:", error);
-    res.status(500).json({ status: "error", message: "Server error" });
+    const unpaidItems = await paymentCollection
+      .find({ email, paid: false, status: "confirm" })
+      .toArray();
+    res.json(unpaidItems);
+  } catch (err) {
+    console.error("Error fetching unpaid items:", err);
+    res.status(500).json({ message: "Failed to fetch unpaid items" });
   }
 });
