@@ -128,6 +128,25 @@ app.post("/api/add-shop", async (req, res) => {
   }
 });
 
+app.post("/api/add-home", async (req, res) => {
+  const { title, description, price, category } = req.body;
+  try {
+    await homeCollection.insertOne({ title, description, price, category });
+    res.status(201).json({ message: "home added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding home", error });
+  }
+});
+app.post("/api/add-meal", async (req, res) => {
+  const { title, description, price, rating } = req.body;
+  try {
+    await mealCollection.insertOne({ title, description, price, rating });
+    res.status(201).json({ message: "meal added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding meal", error });
+  }
+});
+
 app.post("/api/add-custom-meal", async (req, res) => {
   const { title, description, price, rating } = req.body;
   try {

@@ -33,11 +33,12 @@ const AdminDashboard = () => {
     price: "",
     rating: "",
   });
+
   const [newHome, setNewHome] = useState({
     title: "",
     description: "",
     price: "",
-    rating: "",
+    category: "",
   });
   const navigate = useNavigate();
 
@@ -136,6 +137,26 @@ const AdminDashboard = () => {
       }
     } catch {
       toast.error("Error adding flat");
+    }
+  };
+  const handleHomeSubmit = async () => {
+    try {
+      if (!newHome.title || !newHome.description) {
+        toast.error("Please fill in all fields");
+        return;
+      }
+      const res = await fetch("http://localhost:3000/api/add-home", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newHome),
+      });
+      if (res.ok) {
+        toast.success("home added");
+        setNewHome({ title: "", description: "", price: "", category: "" });
+        fetchHomes();
+      }
+    } catch {
+      toast.error("Error adding home");
     }
   };
 
@@ -502,6 +523,45 @@ const AdminDashboard = () => {
               className="input-field"
             />
             <Button onClick={handleShopSubmit}>Add Shop</Button>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Add Home</h3>
+            <input
+              type="text"
+              placeholder="Title"
+              value={newHome.title}
+              onChange={(e) =>
+                setNewHome({ ...newHome, title: e.target.value })
+              }
+              className="input-field"
+            />
+            <textarea
+              placeholder="Description"
+              value={newHome.description}
+              onChange={(e) =>
+                setNewHome({ ...newHome, description: e.target.value })
+              }
+              className="input-field"
+            />
+            <input
+              type="text"
+              placeholder="Price"
+              value={newHome.price}
+              onChange={(e) =>
+                setNewHome({ ...newHome, price: e.target.value })
+              }
+              className="input-field"
+            />
+            <input
+              type="text"
+              placeholder="Category"
+              value={newHome.category}
+              onChange={(e) =>
+                setNewHome({ ...newHome, category: e.target.value })
+              }
+              className="input-field"
+            />
+            <Button onClick={handleHomeSubmit}>Add Home</Button>
           </div>
           {/* Meal Form */}
           <div className="space-y-4">
