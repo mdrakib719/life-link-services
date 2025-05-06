@@ -355,6 +355,15 @@ app.delete("/api/delete-shop/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting shop", error });
   }
 });
+app.delete("/api/delete-home/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await homeCollection.deleteOne({ _id: new ObjectId(id) });
+    res.status(200).json({ message: "home deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting home", error });
+  }
+});
 
 app.delete("/api/delete-meal/:id", async (req, res) => {
   const { id } = req.params;

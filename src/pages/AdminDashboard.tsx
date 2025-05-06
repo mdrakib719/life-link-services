@@ -287,6 +287,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const deleteHome = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/delete-home/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("home deleted");
+        fetchMeals();
+      }
+    } catch {
+      toast.error("Failed to delete home");
+    }
+  };
+
   const updateMealPrice = async (id: string) => {
     const newPrice = prompt("Enter new price:");
     if (!newPrice) return;
@@ -649,6 +663,32 @@ const AdminDashboard = () => {
                   </div>
                   <Button
                     onClick={() => deleteShop(shop._id)}
+                    className="bg-red-500"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Manage Homes</h2>
+            <div className="space-y-4">
+              {homes.map((home) => (
+                <div
+                  key={home._id}
+                  className="border p-4 rounded shadow flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>Title:</strong> {home.title}
+                    </p>
+                    <p>
+                      <strong>Category:</strong> {home.category}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => deleteHome(home._id)}
                     className="bg-red-500"
                   >
                     Delete
