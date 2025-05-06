@@ -94,7 +94,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/terms"
+                  to="/terms-of-service"
                   className="text-sm text-gray-600 hover:text-life-blue-500 dark:text-gray-400"
                 >
                   Terms of Service

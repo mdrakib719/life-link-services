@@ -15,6 +15,8 @@ import PaymentForm from "./pages/PaymentForm";
 import OrderForm from "./pages/OrderFrom";
 import CartPage from "./pages/CartPage";
 import ForgotPassword from "./pages/ForgotPassword";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -32,6 +34,15 @@ const App = () => (
           {/* <Route path="/:id" element={<RentalItemPage />} /> */}
           {/* <Route path="/:id/edit" element={<RentalItemEditPage />} /> */}
           {/* <Route path="/:id/delete" element={<RentalItemDeletePage />} /> */}
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          {/* <Route path="/privacy-policy" element={<PrivacyPolicy />} /> */}
+          {/* <Route path="/contact-us" element={<ContactUs />} /> */}
+          {/* <Route path="/about-us" element={<AboutUs />} /> */}
+          {/* <Route path="/blog" element={<Blog />} /> */}
+          {/* <Route path="/blog/:slug" element={<BlogPost />} /> */}
+          {/* <Route path="/faq" element={<FAQ />} /> */}
+          {/* <Route path="/support" element={<Support />} /> */}
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
