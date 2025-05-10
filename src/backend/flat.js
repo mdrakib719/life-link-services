@@ -10,8 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-const url =
-  "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm";
+const url = "mongodb+srv://test:rakib123@cluster0.p2xus.mongodb.net/";
 const client = new MongoClient(url);
 let db;
 let flatCollection;
