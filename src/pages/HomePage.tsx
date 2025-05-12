@@ -48,7 +48,7 @@ const HomePage = () => {
               </div>
               <img
                 src="https://czrzkrlkqywcczazeopo.supabase.co/storage/v1/object/public/blog-images//Screenshot%202025-05-05%20at%209.08.59%20PM.png"
-                alt="Students using LifeLink services"
+                alt="Students using Local Connect services"
                 className="w-fit h-auto rounded-md"
               />
             </div>
@@ -81,7 +81,7 @@ const HomePage = () => {
                 Find comfortable and affordable accommodations near your campus.
               </p>
               <Link
-                to="/services/flats"
+                to="/services"
                 className="mt-4 text-life-blue-500 hover:underline inline-block"
               >
                 Browse Flats →
@@ -102,7 +102,7 @@ const HomePage = () => {
                 delivered to you.
               </p>
               <Link
-                to="/services/meals"
+                to="/services"
                 className="mt-4 text-life-blue-500 hover:underline inline-block"
               >
                 View Meal Plans →
@@ -122,7 +122,7 @@ const HomePage = () => {
                 Discover shops and services in your area with student discounts.
               </p>
               <Link
-                to="/services/shops"
+                to="/services"
                 className="mt-4 text-life-blue-500 hover:underline inline-block"
               >
                 Explore Shops →
