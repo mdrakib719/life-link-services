@@ -137,7 +137,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose LifeLink
+              Why Choose Local Connect
             </h2>
             <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               We're building a community-focused platform that makes student
@@ -200,7 +200,7 @@ const HomePage = () => {
             </h2>
             <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
               Join thousands of students who are already enjoying the benefits
-              of LifeLink Services.
+              of Local Connect Services.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/signup">
