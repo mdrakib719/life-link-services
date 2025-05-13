@@ -12,12 +12,14 @@ import {
   Star,
   Search,
   Home,
+  Car,
 } from "lucide-react";
 
 const ServicesPage = () => {
   const [flats, setFlats] = useState([]);
   const [shops, setShops] = useState([]);
   const [meals, setMeals] = useState([]);
+  const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [home, setHome] = useState([]);
   const [error, setError] = useState(null);
@@ -45,6 +47,10 @@ const ServicesPage = () => {
         const homeResponse = await fetch("http://localhost:3000/api/home");
         const homeData = await homeResponse.json();
         setHome(homeData);
+
+        const carResponse = await fetch("http://localhost:3000/api/cx");
+        const carData = await carResponse.json();
+        setCars(carData);
 
         setLoading(false);
       } catch (err) {
@@ -94,7 +100,7 @@ const ServicesPage = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Find Services Near You
@@ -125,7 +131,7 @@ const ServicesPage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="flats" className="w-full">
-          <TabsList className="grid grid-cols-4 max-w-xl mx-auto mb-8">
+          <TabsList className="grid grid-cols-5 max-w-xl mx-auto mb-8">
             <TabsTrigger value="flats" className="flex gap-2 items-center">
               <HomeIcon size={18} />
               <span>Flats</span>
@@ -135,8 +141,13 @@ const ServicesPage = () => {
               <span>Meals</span>
             </TabsTrigger>
             <TabsTrigger value="home" className="flex gap-2 items-center">
-              <Utensils size={18} />
+              <Home size={18} />
               <span>Home Service</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="car" className="flex gap-2 items-center">
+              <Car size={18} />
+              <span>Cars</span>
             </TabsTrigger>
             <TabsTrigger value="shops" className="flex gap-2 items-center">
               <ShoppingBag size={18} />
@@ -283,6 +294,57 @@ const ServicesPage = () => {
                         <Button
                           className="w-full bg-lime-500 hover:bg-lime-600"
                           onClick={() => handleAddToCart(home)}
+                        >
+                          Add to Cart
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Car Services */}
+          <TabsContent value="car" className="animate-fade-in">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {loading ? (
+                <p>Loading car services...</p>
+              ) : error ? (
+                <p className="text-red-500">Error: {error}</p>
+              ) : cars.length === 0 ? (
+                <p>No car services available at the moment.</p>
+              ) : (
+                cars
+                  .filter(
+                    (car) =>
+                      car?.title
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                      car?.description
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase())
+                  )
+                  .map((car) => (
+                    <Card key={car._id} className="overflow-hidden card-hover">
+                      <CardContent className="p-6 space-y-3">
+                        <h3 className="text-xl font-semibold">
+                          {car.title || "Untitled Car Service"}
+                        </h3>
+                        <div className="text-sm text-gray-500">
+                          {car.description || "No description available."}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-life-blue-500 font-semibold">
+                            {car.price || "Price not listed"}
+                          </span>
+                          <Star
+                            size={16}
+                            className="text-yellow-500 mr-1 fill-yellow-500"
+                          />
+                        </div>
+                        <Button
+                          className="w-full bg-lime-500 hover:bg-lime-600"
+                          onClick={() => handleAddToCart(car)}
                         >
                           Add to Cart
                         </Button>

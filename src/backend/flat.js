@@ -16,11 +16,11 @@ let db;
 let flatCollection;
 let shopCollection;
 let mealCollection;
-let cartCollection;
 let userCollection;
 let paymentCollection;
 let homeCollection;
-
+let cartCollection;
+let carCollection;
 client
   .connect()
   .then(() => {
@@ -28,6 +28,7 @@ client
     flatCollection = db.collection("flat");
     shopCollection = db.collection("shop");
     mealCollection = db.collection("meal");
+    carCollection = db.collection("car");
     cartCollection = db.collection("cart");
     userCollection = db.collection("user");
     paymentCollection = db.collection("payments");
@@ -86,6 +87,17 @@ app.get("/api/home", async (req, res) => {
     res.json(home);
   } catch (error) {
     res.status(500).json({ message: "Error fetching home", error });
+  }
+});
+app.get("/api/cx", async (req, res) => {
+  try {
+    const cars = await carCollection.find({}).toArray();
+    res.status(200).json(cars);
+  } catch (error) {
+    console.error("Error fetching cars:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch cars", error: error.message });
   }
 });
 
@@ -567,8 +579,6 @@ app.put("/api/contact-messages/:id/reply", async (req, res) => {
     res.status(500).json({ message: "Failed to send reply" });
   }
 });
-
-
 
 app.get("/api/messages", async (req, res) => {
   try {
