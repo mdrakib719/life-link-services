@@ -568,23 +568,7 @@ app.put("/api/contact-messages/:id/reply", async (req, res) => {
   }
 });
 
-// // 1. Route to fetch messages (GET)
-// app.get("/api/messages", async (req, res) => {
-//   try {
-//     const email = req.query.email; // For example, you can filter messages based on the user's email
-//     let messages;
 
-//     if (email) {
-//       messages = await contactMessagesCollection.find({ email }).toArray();
-//     } else {
-//       messages = await contactMessagesCollection.find().toArray(); // Fetch all messages for admin
-//     }
-
-//     res.status(200).json(messages);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error fetching messages", error });
-//   }
-// });
 
 app.get("/api/messages", async (req, res) => {
   try {
@@ -643,108 +627,7 @@ app.post("/api/reset-password", async (req, res) => {
   }
 });
 
-// app.post("/api/pay", async (req, res) => {
-//   const { cartId } = req.body;
-//   console.log("Received cartId:", cartId); // <-- Add this
-
-//   try {
-//     const cartItem = await Cart.findById(cartId);
-//     if (!cartItem) {
-//       console.log("Cart item not found"); // <-- Add this
-//       return res.status(404).json({ message: "Cart item not found." });
-//     }
-
-//     const user = await User.findById(cartItem.userId);
-//     if (!user) {
-//       console.log("User not found");
-//       return res.status(404).json({ message: "User not found." });
-//     }
-
-//     if (user.balance < cartItem.totalPrice) {
-//       return res.status(400).json({ message: "Insufficient balance." });
-//     }
-
-//     user.balance -= cartItem.totalPrice;
-//     await user.save();
-
-//     await Transaction.create({
-//       userId: user._id,
-//       type: "debit",
-//       amount: cartItem.totalPrice,
-//     });
-
-//     await Cart.findByIdAndDelete(cartId);
-
-//     res.json({ message: "Payment successful." });
-//   } catch (err) {
-//     console.error("Payment failed:", err); // <-- Log error
-//     res.status(500).json({ message: "Payment failed." });
-//   }
-// });
-// Add a payment
-// app.post("/api/make-payment", async (req, res) => {
-//   const { email, item, amount, method } = req.body;
-//   if (!email || !item || !amount || !method) {
-//     return res.status(400).json({ message: "Missing required fields" });
-//   }
-
-//   try {
-//     await paymentCollection.insertOne({
-//       email,
-//       item,
-//       amount,
-//       method,
-//       status: "paid",
-//       paidAt: new Date(),
-//     });
-//     res.status(201).json({ message: "Payment successful" });
-//   } catch (error) {
-//     res.status(500).json({ message: "Error processing payment", error });
-//   }
-// });
-
-// // Get all payments (optionally filter by email)
-// app.get("/api/payments", async (req, res) => {
-//   const { email } = req.query;
-
-//   try {
-//     const query = email ? { email } : {};
-//     const payments = await paymentCollection.find(query).toArray();
-//     res.status(200).json(payments);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error fetching payments", error });
-//   }
-// });
-
-// app.get("/payment-details/:id", async (req, res) => {
-//   try {
-//     const paymentId = req.params.id;
-
-//     // Query the database for the payment details with 'paid: false'
-//     const payment = await Payment.findOne({ _id: paymentId, paid: false })
-//       .populate("item")
-//       .exec();
-
-//     if (!payment) {
-//       return res.status(404).send("Payment not found or already paid");
-//     }
-
-//     res.json({
-//       user: {
-//         email: payment.email,
-//         item: payment.item,
-//         paid: payment.paid,
-//         status: payment.status,
-//         price: payment.item.pricePerMonth,
-//       },
-//     });
-//   } catch (error) {
-//     res.status(500).send("Server error");
-//   }
-// });
-
-// Get payment item
-// Get payment by id
+// Payment route
 
 // Get all carts
 app.get("/api/pay", async (req, res) => {
@@ -780,5 +663,27 @@ app.delete("/api/delete-carti/:id", async (req, res) => {
     res.status(200).json({ message: "Cart deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting cart", error });
+  }
+});
+app.post("/api/process-payment", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ message: "❌ Email is required." });
+
+  try {
+    // ✅ Update all unpaid items to "paid"
+    const result = await cartCollection.updateMany(
+      { email, paid: false, status: "confirm" },
+      { $set: { paid: true } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ message: "❌ No unpaid items found." });
+    }
+
+    res.json({ success: true, message: "✅ Payment successful!" });
+  } catch (error) {
+    console.error("Payment processing error:", error);
+    res.status(500).json({ message: "❌ Payment processing failed." });
   }
 });
