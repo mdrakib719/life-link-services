@@ -65,6 +65,32 @@ const PaymentForm: React.FC = () => {
   const handlePrint = () => {
     window.print();
   };
+  const handlePayment = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch("http://localhost:3000/api/process-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Payment failed.");
+
+    // ✅ Clear cart on successful payment
+    setItems([]);
+    alert("✅ Payment successful!");
+    setError("");
+  } catch (error: any) {
+    console.error("Payment error:", error.message);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
   return (
     <div className="p-6 max-w-xl mx-auto bg-white shadow rounded">
       <h2 className="text-xl font-bold mb-4">Check Unpaid Items</h2>
@@ -128,7 +154,10 @@ const PaymentForm: React.FC = () => {
             <p className="text-lg font-bold">Total Due: {calculateTotal()}</p>
           </div>
           <div className="flex justify-between print:hidden">
-            <button className="bg-green-600 text-white px-4 py-2 rounded">
+            <button 
+              onClick={handlePayment}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
               Pay Now
             </button>
             <button
