@@ -10,7 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-const url = "mongodb+srv://test:rakib123@cluster0.p2xus.mongodb.net/";
+const url =
+  "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm";
 const client = new MongoClient(url);
 let db;
 let flatCollection;
@@ -226,7 +227,7 @@ app.put("/api/approve-cart/:id", async (req, res) => {
   try {
     const result = await cartCollection.updateOne(
       { _id: new ObjectId(id), status: "process" },
-      { $set: { status: "confirm" } }
+      { $set: { status: "confirm" } },
     );
 
     if (result.modifiedCount === 0) {
@@ -325,7 +326,7 @@ app.put("/api/verify-user/:id", async (req, res) => {
   try {
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { verified: true } }
+      { $set: { verified: true } },
     );
     res.status(200).json({ message: "User verified" });
   } catch (error) {
@@ -339,7 +340,7 @@ app.put("/api/cancel-verify-user/:id", async (req, res) => {
   try {
     await userCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { verified: false } }
+      { $set: { verified: false } },
     );
     res.status(200).json({ message: "User unverified" });
   } catch (error) {
@@ -406,7 +407,7 @@ app.put("/api/update-meal-price/:id", async (req, res) => {
     }
     await mealCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: { price } }
+      { $set: { price } },
     );
     res.status(200).json({ message: "Meal price updated" });
   } catch (error) {
@@ -461,7 +462,7 @@ app.post("/api/discussions/:id/reply", async (req, res) => {
     .collection("discussions")
     .updateOne(
       { _id: new ObjectId(req.params.id) },
-      { $push: { replies: reply } }
+      { $push: { replies: reply } },
     );
   res.json({ message: "Reply added" });
 });
@@ -511,7 +512,7 @@ app.post("/api/discussions/:id/like", async (req, res) => {
     {
       $inc: { likes: 1 },
       $push: { likedBy: userId },
-    }
+    },
   );
 
   res.json({ message: "Liked" });
@@ -567,7 +568,7 @@ app.put("/api/contact-messages/:id/reply", async (req, res) => {
       .collection("contactMessages")
       .updateOne(
         { _id: new ObjectId(id) },
-        { $set: { adminReply: reply, answered: true } }
+        { $set: { adminReply: reply, answered: true } },
       );
 
     if (result.modifiedCount === 0) {
@@ -623,7 +624,7 @@ app.post("/api/reset-password", async (req, res) => {
     // const hashedPassword = await bcrypt.hash(newPassword, 10);
     const result = await userCollection.updateOne(
       { email },
-      { $set: { password: newPassword } }
+      { $set: { password: newPassword } },
     );
 
     if (result.modifiedCount === 1) {
@@ -684,7 +685,7 @@ app.post("/api/process-payment", async (req, res) => {
     // ✅ Update all unpaid items to "paid"
     const result = await cartCollection.updateMany(
       { email, paid: false, status: "confirm" },
-      { $set: { paid: true } }
+      { $set: { paid: true } },
     );
 
     if (result.modifiedCount === 0) {
