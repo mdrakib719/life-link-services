@@ -8,9 +8,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 1142,
+    proxy: {
+      "/api": {
+        target: "https://life-link-services-2.onrender.com",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(
-    Boolean
+    Boolean,
   ),
   resolve: {
     alias: {

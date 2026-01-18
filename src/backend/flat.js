@@ -1,17 +1,20 @@
 import express from "express";
 import { MongoClient, ObjectId } from "mongodb"; // Import ObjectId
 import cors from "cors";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-const url =
-  "mongodb+srv://scm:123456scm@scm.ez2lk.mongodb.net/scm?retryWrites=true&w=majority&appName=scm";
+const url = process.env.MONGODB_URL;
 const client = new MongoClient(url);
 let db;
 let flatCollection;
