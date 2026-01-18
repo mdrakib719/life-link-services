@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Middlewares
 app.use(cors());
@@ -67,7 +67,7 @@ app.get("/api/shopi", async (req, res) => {
     res.status(500).json({ message: "Error fetching shops", error });
   }
 });
-app.get("/api/home", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/home", async (req, res) => {
   try {
     const homes = await homeCollection.find({}).toArray();
     res.json(homes);
@@ -76,7 +76,7 @@ app.get("/api/home", async (req, res) => {
   }
 });
 // Fetch Meals
-app.get("/api/food", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/food", async (req, res) => {
   try {
     const meals = await mealCollection.find({}).toArray();
     res.json(meals);
@@ -85,7 +85,7 @@ app.get("/api/food", async (req, res) => {
   }
 });
 
-app.get("/api/home", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/home", async (req, res) => {
   try {
     const home = await homeCollection.find({}).toArray();
     res.json(home);
@@ -105,20 +105,23 @@ app.get("/api/cx", async (req, res) => {
   }
 });
 
-app.delete("/api/delete-user/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await userCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "user deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting user", error });
-  }
-});
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-user/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await userCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "user deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting user", error });
+    }
+  },
+);
 // ------------------------------------------------
 // ➕ Add Flat, Shop, Meal
 // ------------------------------------------------
 
-app.post("/api/add-flat", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/add-flat", async (req, res) => {
   const { title, location, distanceFromCampus, pricePerMonth } = req.body;
   try {
     await flatCollection.insertOne({
@@ -133,7 +136,7 @@ app.post("/api/add-flat", async (req, res) => {
   }
 });
 
-app.post("/api/add-shop", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/add-shop", async (req, res) => {
   const { title, location, distance, rating } = req.body;
   try {
     await shopCollection.insertOne({ title, location, distance, rating });
@@ -143,7 +146,7 @@ app.post("/api/add-shop", async (req, res) => {
   }
 });
 
-app.post("/api/add-home", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/add-home", async (req, res) => {
   const { title, description, price, category } = req.body;
   try {
     await homeCollection.insertOne({ title, description, price, category });
@@ -152,7 +155,7 @@ app.post("/api/add-home", async (req, res) => {
     res.status(500).json({ message: "Error adding home", error });
   }
 });
-app.post("/api/add-meal", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/add-meal", async (req, res) => {
   const { title, description, price, rating } = req.body;
   try {
     await mealCollection.insertOne({ title, description, price, rating });
@@ -162,22 +165,25 @@ app.post("/api/add-meal", async (req, res) => {
   }
 });
 
-app.post("/api/add-custom-meal", async (req, res) => {
-  const { title, description, price, rating } = req.body;
-  try {
-    await mealCollection.insertOne({ title, description, price, rating });
-    res.status(201).json({ message: "Meal added successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error adding meal", error });
-  }
-});
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/add-custom-meal",
+  async (req, res) => {
+    const { title, description, price, rating } = req.body;
+    try {
+      await mealCollection.insertOne({ title, description, price, rating });
+      res.status(201).json({ message: "Meal added successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error adding meal", error });
+    }
+  },
+);
 
 // ------------------------------------------------
 // 🛒 Cart System
 // ------------------------------------------------
 
 // Add to cart
-app.post("/api/add-cart", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/add-cart", async (req, res) => {
   const { email, item, status } = req.body;
   try {
     await cartCollection.insertOne({
@@ -205,7 +211,7 @@ app.post("/api/add-cart", async (req, res) => {
 // Get all carts
 // Example in Node.js (Express) using MongoDB
 // Example Express route to fetch carts by email
-app.get("/api/carts", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/carts", async (req, res) => {
   const { email } = req.query;
 
   try {
@@ -224,52 +230,60 @@ app.get("/api/carts", async (req, res) => {
 });
 
 // Approve cart
-app.put("/api/approve-cart/:id", async (req, res) => {
-  const { id } = req.params;
+app.put(
+  "${import.meta.env.VITE_API_URL}/api/approve-cart/:id",
+  async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const result = await cartCollection.updateOne(
-      { _id: new ObjectId(id), status: "process" },
-      { $set: { status: "confirm" } },
-    );
+    try {
+      const result = await cartCollection.updateOne(
+        { _id: new ObjectId(id), status: "process" },
+        { $set: { status: "confirm" } },
+      );
 
-    if (result.modifiedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "Cart not found or already approved" });
+      if (result.modifiedCount === 0) {
+        return res
+          .status(404)
+          .json({ message: "Cart not found or already approved" });
+      }
+
+      res.status(200).json({ message: "Cart approved successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error approving cart", error });
     }
-
-    res.status(200).json({ message: "Cart approved successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error approving cart", error });
-  }
-});
+  },
+);
 
 // Cancel cart (only if status = process)
-app.delete("/api/delete-cart/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const cart = await cartCollection.findOne({ _id: new ObjectId(id) });
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-cart/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      const cart = await cartCollection.findOne({ _id: new ObjectId(id) });
 
-    if (!cart) return res.status(404).json({ message: "Cart not found" });
+      if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-    if (cart.status === "confirm") {
-      return res.status(400).json({ message: "Cannot cancel confirmed order" });
+      if (cart.status === "confirm") {
+        return res
+          .status(400)
+          .json({ message: "Cannot cancel confirmed order" });
+      }
+
+      await cartCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "Cart deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error cancelling cart", error });
     }
-
-    await cartCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "Cart deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error cancelling cart", error });
-  }
-});
+  },
+);
 
 // ------------------------------------------------
 // 👥 User Authentication
 // ------------------------------------------------
 
 // Signup
-app.post("/api/submitForm", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/submitForm", async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -292,7 +306,7 @@ app.post("/api/submitForm", async (req, res) => {
 });
 
 // Login
-app.post("/api/login", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await userCollection.findOne({ email });
@@ -314,7 +328,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 // Fetch all users
-app.get("/api/use", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/use", async (req, res) => {
   try {
     const users = await userCollection.find({}).toArray();
     res.status(200).json(users);
@@ -338,98 +352,118 @@ app.put("/api/verify-user/:id", async (req, res) => {
 });
 
 // Cancel verify
-app.put("/api/cancel-verify-user/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await userCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { verified: false } },
-    );
-    res.status(200).json({ message: "User unverified" });
-  } catch (error) {
-    res.status(500).json({ message: "Error cancelling verification", error });
-  }
-});
+app.put(
+  "${import.meta.env.VITE_API_URL}/api/cancel-verify-user/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await userCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { verified: false } },
+      );
+      res.status(200).json({ message: "User unverified" });
+    } catch (error) {
+      res.status(500).json({ message: "Error cancelling verification", error });
+    }
+  },
+);
 
 // ------------------------------------------------
 // 🗑️ Delete Flat, Shop, Meal
 // ------------------------------------------------
 
-app.delete("/api/delete-flat/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await flatCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "Flat deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting flat", error });
-  }
-});
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-flat/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await flatCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "Flat deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting flat", error });
+    }
+  },
+);
 
-app.delete("/api/delete-shop/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await shopCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "Shop deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting shop", error });
-  }
-});
-app.delete("/api/delete-home/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await homeCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "home deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting home", error });
-  }
-});
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-shop/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await shopCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "Shop deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting shop", error });
+    }
+  },
+);
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-home/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await homeCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "home deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting home", error });
+    }
+  },
+);
 
-app.delete("/api/delete-meal/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await mealCollection.deleteOne({ _id: new ObjectId(id) });
-    res.status(200).json({ message: "Meal deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting meal", error });
-  }
-});
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-meal/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await mealCollection.deleteOne({ _id: new ObjectId(id) });
+      res.status(200).json({ message: "Meal deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting meal", error });
+    }
+  },
+);
 
 // Update Meal Price (only if price is 0)
-app.put("/api/update-meal-price/:id", async (req, res) => {
-  const { id } = req.params;
-  const { price } = req.body;
-  try {
-    const meal = await mealCollection.findOne({ _id: new ObjectId(id) });
-    if (!meal) {
-      return res.status(404).json({ message: "Meal not found" });
+app.put(
+  "${import.meta.env.VITE_API_URL}/api/update-meal-price/:id",
+  async (req, res) => {
+    const { id } = req.params;
+    const { price } = req.body;
+    try {
+      const meal = await mealCollection.findOne({ _id: new ObjectId(id) });
+      if (!meal) {
+        return res.status(404).json({ message: "Meal not found" });
+      }
+      if (meal.price !== 0) {
+        return res
+          .status(400)
+          .json({ message: "Only meals with price 0 can be updated" });
+      }
+      await mealCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { price } },
+      );
+      res.status(200).json({ message: "Meal price updated" });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating meal price", error });
     }
-    if (meal.price !== 0) {
-      return res
-        .status(400)
-        .json({ message: "Only meals with price 0 can be updated" });
-    }
-    await mealCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { price } },
-    );
-    res.status(200).json({ message: "Meal price updated" });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating meal price", error });
-  }
-});
+  },
+);
 
 // ------------------------------------------------
 // Server Listen
 // ------------------------------------------------
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(
+    `${import.meta.env.VITE_API_URL}Server is running on port ${PORT}`,
+  );
 });
 
 // Routes
 
 // Get all discussions
-app.get("/api/discussions", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/discussions", async (req, res) => {
   const discussions = await db
     .collection("discussions")
     .find({})
@@ -439,44 +473,53 @@ app.get("/api/discussions", async (req, res) => {
 });
 
 // Post a new discussion
-app.post("/api/discussions", async (req, res) => {
-  const { title, author, category } = req.body;
-  const newDiscussion = {
-    title,
-    author,
-    category,
-    time: new Date().toLocaleString(),
-    replies: [],
-    likes: 0,
-  };
-  await db.collection("discussions").insertOne(newDiscussion);
-  res.json({ message: "Discussion created" });
-});
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/discussions",
+  async (req, res) => {
+    const { title, author, category } = req.body;
+    const newDiscussion = {
+      title,
+      author,
+      category,
+      time: new Date().toLocaleString(),
+      replies: [],
+      likes: 0,
+    };
+    await db.collection("discussions").insertOne(newDiscussion);
+    res.json({ message: "Discussion created" });
+  },
+);
 
 // Add reply to a discussion
-app.post("/api/discussions/:id/reply", async (req, res) => {
-  const { text, author } = req.body;
-  const reply = {
-    text,
-    author,
-    time: new Date().toLocaleString(),
-  };
-  await db
-    .collection("discussions")
-    .updateOne(
-      { _id: new ObjectId(req.params.id) },
-      { $push: { replies: reply } },
-    );
-  res.json({ message: "Reply added" });
-});
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/discussions/:id/reply",
+  async (req, res) => {
+    const { text, author } = req.body;
+    const reply = {
+      text,
+      author,
+      time: new Date().toLocaleString(),
+    };
+    await db
+      .collection("discussions")
+      .updateOne(
+        { _id: new ObjectId(req.params.id) },
+        { $push: { replies: reply } },
+      );
+    res.json({ message: "Reply added" });
+  },
+);
 
 // Like a discussion
-app.post("/api/discussions/:id/like", async (req, res) => {
-  await db
-    .collection("discussions")
-    .updateOne({ _id: new ObjectId(req.params.id) }, { $inc: { likes: 1 } });
-  res.json({ message: "Liked" });
-});
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/discussions/:id/like",
+  async (req, res) => {
+    await db
+      .collection("discussions")
+      .updateOne({ _id: new ObjectId(req.params.id) }, { $inc: { likes: 1 } });
+    res.json({ message: "Liked" });
+  },
+);
 
 // Get support topics
 app.get("/api/support", async (req, res) => {
@@ -499,29 +542,32 @@ app.post("/api/support", async (req, res) => {
   res.json({ message: "Support topic created" });
 });
 
-app.post("/api/discussions/:id/like", async (req, res) => {
-  const userId = req.body.userId; // Assume userId comes from frontend (after login)
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/discussions/:id/like",
+  async (req, res) => {
+    const userId = req.body.userId; // Assume userId comes from frontend (after login)
 
-  const discussion = await db
-    .collection("discussions")
-    .findOne({ _id: new ObjectId(req.params.id) });
+    const discussion = await db
+      .collection("discussions")
+      .findOne({ _id: new ObjectId(req.params.id) });
 
-  if (discussion.likedBy.includes(userId)) {
-    return res.status(400).json({ message: "Already liked" });
-  }
+    if (discussion.likedBy.includes(userId)) {
+      return res.status(400).json({ message: "Already liked" });
+    }
 
-  await db.collection("discussions").updateOne(
-    { _id: new ObjectId(req.params.id) },
-    {
-      $inc: { likes: 1 },
-      $push: { likedBy: userId },
-    },
-  );
+    await db.collection("discussions").updateOne(
+      { _id: new ObjectId(req.params.id) },
+      {
+        $inc: { likes: 1 },
+        $push: { likedBy: userId },
+      },
+    );
 
-  res.json({ message: "Liked" });
-});
+    res.json({ message: "Liked" });
+  },
+);
 
-app.get("/api/support/:id", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/support/:id", async (req, res) => {
   const topic = await db
     .collection("supportTopics")
     .findOne({ _id: new ObjectId(req.params.id) });
@@ -529,7 +575,7 @@ app.get("/api/support/:id", async (req, res) => {
   res.json(topic);
 });
 
-app.post("/api/contact", async (req, res) => {
+app.post("${import.meta.env.VITE_API_URL}/api/contact", async (req, res) => {
   const { name, email, subject, message } = req.body;
 
   if (!name || !email || !subject || !message) {
@@ -554,37 +600,43 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-app.get("/api/contact-messages", async (req, res) => {
-  try {
-    const messages = await db.collection("contactMessages").find().toArray();
-    res.json(messages);
-  } catch {
-    res.status(500).json({ message: "Failed to fetch messages" });
-  }
-});
-app.put("/api/contact-messages/:id/reply", async (req, res) => {
-  const { id } = req.params;
-  const { reply } = req.body;
-
-  try {
-    const result = await db
-      .collection("contactMessages")
-      .updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { adminReply: reply, answered: true } },
-      );
-
-    if (result.modifiedCount === 0) {
-      return res.status(400).json({ message: "Message not found" });
+app.get(
+  "${import.meta.env.VITE_API_URL}/api/contact-messages",
+  async (req, res) => {
+    try {
+      const messages = await db.collection("contactMessages").find().toArray();
+      res.json(messages);
+    } catch {
+      res.status(500).json({ message: "Failed to fetch messages" });
     }
+  },
+);
+app.put(
+  "${import.meta.env.VITE_API_URL}/api/contact-messages/:id/reply",
+  async (req, res) => {
+    const { id } = req.params;
+    const { reply } = req.body;
 
-    res.status(200).json({ message: "Reply sent successfully" });
-  } catch {
-    res.status(500).json({ message: "Failed to send reply" });
-  }
-});
+    try {
+      const result = await db
+        .collection("contactMessages")
+        .updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { adminReply: reply, answered: true } },
+        );
 
-app.get("/api/messages", async (req, res) => {
+      if (result.modifiedCount === 0) {
+        return res.status(400).json({ message: "Message not found" });
+      }
+
+      res.status(200).json({ message: "Reply sent successfully" });
+    } catch {
+      res.status(500).json({ message: "Failed to send reply" });
+    }
+  },
+);
+
+app.get("${import.meta.env.VITE_API_URL}/api/messages", async (req, res) => {
   try {
     const { email } = req.query;
     const filter = email ? { email } : {};
@@ -602,49 +654,52 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
-app.post("/api/reset-password", async (req, res) => {
-  const { name, email, verified, newPassword } = req.body;
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/reset-password",
+  async (req, res) => {
+    const { name, email, verified, newPassword } = req.body;
 
-  if (!name || !email || !verified || !newPassword) {
-    return res.status(400).json({ message: "All fields are required." });
-  }
-
-  try {
-    const user = await userCollection.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
+    if (!name || !email || !verified || !newPassword) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
-    if (
-      user.name !== name ||
-      String(user.verified).toLowerCase() !== String(verified).toLowerCase()
-    ) {
-      return res.status(400).json({ message: "Verification failed." });
-    }
+    try {
+      const user = await userCollection.findOne({ email });
 
-    // Optionally hash password if you're storing hashed passwords
-    // const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const result = await userCollection.updateOne(
-      { email },
-      { $set: { password: newPassword } },
-    );
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
 
-    if (result.modifiedCount === 1) {
-      res.status(200).json({ message: "Password reset successfully." });
-    } else {
-      res.status(500).json({ message: "Failed to reset password." });
+      if (
+        user.name !== name ||
+        String(user.verified).toLowerCase() !== String(verified).toLowerCase()
+      ) {
+        return res.status(400).json({ message: "Verification failed." });
+      }
+
+      // Optionally hash password if you're storing hashed passwords
+      // const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const result = await userCollection.updateOne(
+        { email },
+        { $set: { password: newPassword } },
+      );
+
+      if (result.modifiedCount === 1) {
+        res.status(200).json({ message: "Password reset successfully." });
+      } else {
+        res.status(500).json({ message: "Failed to reset password." });
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      res.status(500).json({ message: "Server error." });
     }
-  } catch (err) {
-    console.error("Reset password error:", err);
-    res.status(500).json({ message: "Server error." });
-  }
-});
+  },
+);
 
 // Payment route
 
 // Get all carts
-app.get("/api/pay", async (req, res) => {
+app.get("${import.meta.env.VITE_API_URL}/api/pay", async (req, res) => {
   const { email } = req.query;
 
   if (!email) {
@@ -662,42 +717,49 @@ app.get("/api/pay", async (req, res) => {
   }
 });
 
-app.delete("/api/delete-carti/:id", async (req, res) => {
-  const { id } = req.params;
+app.delete(
+  "${import.meta.env.VITE_API_URL}/api/delete-carti/:id",
+  async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
+    try {
+      const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
 
-    if (result.deletedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "Cart not found or already deleted" });
+      if (result.deletedCount === 0) {
+        return res
+          .status(404)
+          .json({ message: "Cart not found or already deleted" });
+      }
+
+      res.status(200).json({ message: "Cart deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting cart", error });
     }
+  },
+);
+app.post(
+  "${import.meta.env.VITE_API_URL}/api/process-payment",
+  async (req, res) => {
+    const { email } = req.body;
 
-    res.status(200).json({ message: "Cart deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting cart", error });
-  }
-});
-app.post("/api/process-payment", async (req, res) => {
-  const { email } = req.body;
+    if (!email)
+      return res.status(400).json({ message: "❌ Email is required." });
 
-  if (!email) return res.status(400).json({ message: "❌ Email is required." });
+    try {
+      // ✅ Update all unpaid items to "paid"
+      const result = await cartCollection.updateMany(
+        { email, paid: false, status: "confirm" },
+        { $set: { paid: true } },
+      );
 
-  try {
-    // ✅ Update all unpaid items to "paid"
-    const result = await cartCollection.updateMany(
-      { email, paid: false, status: "confirm" },
-      { $set: { paid: true } },
-    );
+      if (result.modifiedCount === 0) {
+        return res.status(400).json({ message: "❌ No unpaid items found." });
+      }
 
-    if (result.modifiedCount === 0) {
-      return res.status(400).json({ message: "❌ No unpaid items found." });
+      res.json({ success: true, message: "✅ Payment successful!" });
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      res.status(500).json({ message: "❌ Payment processing failed." });
     }
-
-    res.json({ success: true, message: "✅ Payment successful!" });
-  } catch (error) {
-    console.error("Payment processing error:", error);
-    res.status(500).json({ message: "❌ Payment processing failed." });
-  }
-});
+  },
+);
